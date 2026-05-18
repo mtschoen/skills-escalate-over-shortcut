@@ -13,6 +13,7 @@ This skill should teach agents to notice the moment they're about to commit a so
 ## When to apply
 
 Always, but especially during:
+
 - Integration work with platform dependencies (native libraries, OS APIs, hardware)
 - Test-writing where the production path is underspecified
 - Coverage-gated work where unreachable branches and platform-bound classes show up
@@ -52,6 +53,7 @@ Do NOT commit the hack "as a starting point." The orchestrator handles it. BLOCK
 ## What the orchestrator does with BLOCKED
 
 (Context for agents; not their concern.) The orchestrator either:
+
 - Fixes the upstream gap and re-dispatches (e.g., pre-places FFmpeg DLLs, updates the spec)
 - Narrows the task scope and re-dispatches
 - Accepts the hack with explicit acknowledgment ("ok, ship the OBS copy for now, I'll replace with BtbN downloader next round")
@@ -60,7 +62,7 @@ The point: the agent doesn't carry the decision alone. Escalation is cheap.
 
 ## Structure suggestion
 
-```
+```text
 ~/skills-dev/escalate-over-improvise/
   SKILL.md                  # thesis, triggers, red flags, escalation format
   references/
