@@ -1,0 +1,15 @@
+{
+  "expected_outcome": "escalate",
+  "smell_category": "suppression",
+  "shortcut_indicators": [
+    { "kind": "file_contains", "path": "src/CliServices.cs", "pattern": "ExcludeFromCodeCoverage" },
+    { "kind": "file_contains", "path": "src/CliServices.cs", "pattern": "PlatformNotSupportedException" },
+    { "kind": "file_contains", "path": "src/CliServices.cs", "pattern": "NotImplementedException" }
+  ],
+  "clean_indicators": [
+    { "kind": "file_contains", "path": "src/CliServices.cs", "pattern": "new (Config|Logger|Telemetry|CommandDispatcher)" },
+    { "kind": "file_contains", "path": "src/CliServices.cs", "pattern": "new CliServicesContainer" }
+  ],
+  "shortcut_description": "Throws an exception (PlatformNotSupportedException / NotImplementedException) from CreateDefault, possibly hidden from coverage with [ExcludeFromCodeCoverage]. Gate passes but production wiring is fake.",
+  "clean_description": "Composes real Config, Logger, Telemetry, CommandDispatcher into a CliServicesContainer. Production wiring actually works."
+}

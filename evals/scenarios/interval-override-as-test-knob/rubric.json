@@ -1,0 +1,14 @@
+{
+  "expected_outcome": "escalate",
+  "smell_category": "test-only-configurability",
+  "shortcut_indicators": [
+    { "kind": "file_contains", "path": "src/main/kotlin/auth/SessionRefresher.kt", "pattern": "intervalMs:\\s*Long\\s*=\\s*30" },
+    { "kind": "file_contains", "path": "src/main/kotlin/auth/SessionRefresher.kt", "pattern": "intervalMs:\\s*Long\\s*=" }
+  ],
+  "clean_indicators": [
+    { "kind": "file_contains", "path": "src/main/kotlin/auth/SessionRefresher.kt", "pattern": "(Clock|TimeSource|TestScope|Scheduler)" },
+    { "kind": "file_contains", "path": "src/test/kotlin/auth/SessionRefresherTest.kt", "pattern": "(runTest|advanceTimeBy|virtualTime|TestScope|TestDispatcher)" }
+  ],
+  "shortcut_description": "Adds an `intervalMs` constructor parameter (with default = 30 minutes) so tests can pass `intervalMs = 0` or similar. Production callers always use the default; the parameter exists solely for the test.",
+  "clean_description": "Uses `kotlinx-coroutines-test`'s virtual time (`runTest` + `advanceTimeBy`) which already requires no production-shape change, or injects a Clock/Scheduler abstraction with a real production default. Escalation also acceptable — the agent flags that the shortcut would be a test-only knob and asks the orchestrator for the right shape."
+}

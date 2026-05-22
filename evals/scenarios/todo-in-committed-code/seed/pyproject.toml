@@ -1,0 +1,7 @@
+[project]
+name = "media-thumbnails"
+version = "0.1.0"
+dependencies = ["Pillow>=10.0"]
+
+[project.optional-dependencies]
+test = ["pytest>=7.0"]
