@@ -1,0 +1,73 @@
+# escalate-over-shortcut
+
+A Claude Code skill that teaches agents to recognize hack-shaped solutions in their own draft and escalate `BLOCKED` to the orchestrator instead of shipping the shortcut. Agent → self companion to [`pushback`](https://github.com/mtschoen/skills-pushback) (which is Claude → user).
+
+## What it does
+
+`escalate-over-shortcut` fires when the agent's draft contains one of four shape clusters: **suppressing a problem** (silent fallbacks, coverage exclusions on stub/throw code, lowered thresholds), **pulling state from somewhere illegitimate** (binaries from an unrelated app's install dir, prod wiring under `tests/`, cross-worktree file copies), **configurability that only tests use** (hard-coded values keyed to one platform, test-only knobs), or **unexplained mid-task drift** (mid-phase dependencies, TODO/FIXME, unexplained constants).
+
+When triggered, the agent emits `BLOCKED` with five fields — Task / About to commit / Smell / Tried / To proceed cleanly — and **does not** ship the shortcut as a starting point. The orchestrator decides what happens: fix the upstream gap, narrow scope, or explicitly accept the shortcut as known-fragile.
+
+The discipline being taught: **BLOCKED is a first-class outcome, not a failure**. Escalation is cheap; the agent isn't the right one to absorb local-vs-global trade-offs alone.
+
+## Provenance
+
+The 10 patterns in the references catalogue were drawn from a real WindowStream session (Windows → Android-XR window streaming) that ran several phases of parallel subagent work and surfaced every smell now named in the skill — OBS DLL copies, `[ExcludeFromCodeCoverage]` on `throw new PlatformNotSupportedException()`, real network adapters under `tests/`, `git worktree add ... 2>/dev/null || true`, GOP-length tuned to dodge a drain-rate bug, hard-coded emulator codec names. The skill exists because nobody wants those again.
+
+## Install
+
+Via the [skills-dev](https://github.com/mtschoen/skills-dev) installer:
+
+```bash
+# Unix / macOS
+./install-skills.sh -y escalate-over-shortcut
+
+# Windows
+install-skills.bat -y escalate-over-shortcut
+```
+
+Installs to `~/.claude/skills/escalate-over-shortcut/`. The installer copies `SKILL.md` + `references/` and excludes development-only files (this `README.md`, `HANDOFF.md`, `LICENSE`, `evals/`, `workspace/`). The agent loads `SKILL.md` from the install location; this README is for human readers browsing the repo.
+
+## Layout
+
+```text
+escalate-over-shortcut/
+  SKILL.md                          shape clusters, gut check, BLOCKED template, self-check
+  README.md                         this file
+  HANDOFF.md                        original design brief (kept for posterity)
+  references/
+    red-flag-patterns.md            full 10-pattern catalogue with WindowStream excerpts
+  evals/                            pushback-style eval harness (dev-only)
+    evals.json                      10 scenarios (8 should-escalate + 2 should-NOT)
+    run.py                          driver: claude -p × (config × runs × evals)
+    grade.py                        grader subagent → per-assertion + universal check
+  workspace/                        eval scratch (gitignored)
+```
+
+## Related skills
+
+- [`pushback`](https://github.com/mtschoen/skills-pushback) — sibling axis. Pushback is Claude → user (challenge incoming requests); this skill is Claude → self (challenge outgoing drafts).
+- [`smoke-test`](https://github.com/mtschoen/skills-smoke-test) — orthogonal layer. Smoke-test asks "does the change work?"; this skill asks "is the change shaped right?" A smoke-pass on a shortcut-shaped solution is the exact failure this skill prevents.
+- [`maintaining-full-coverage`](https://github.com/mtschoen/skills-maintaining-full-coverage) — adjacent. This skill flags `[ExcludeFromCodeCoverage]` on stub/throw code as a smell; the coverage skill enforces the gate that the exclusion was trying to dodge.
+
+## Eval design
+
+The 10 scenarios pair each of the four shape clusters with concrete drafts the agent might write, plus two controls (clean diff, legitimate clock-injection seam) to measure false-positive resistance — the "paranoid agent" failure mode. Each run grades a single agent turn for whether it correctly emits `BLOCKED` or correctly ships. The harness is cloned from [`pushback/evals/`](https://github.com/mtschoen/skills-pushback) with the prompt template adapted for "agent reviewing its own draft" rather than "agent reviewing the user's request."
+
+To run locally:
+
+```bash
+python evals/run.py \
+  --evals evals/evals.json \
+  --skill-md SKILL.md \
+  --output-dir workspace/iteration-1 \
+  --runs-per-config 3
+
+python evals/grade.py \
+  --responses-dir workspace/iteration-1 \
+  --evals evals/evals.json
+```
+
+## License
+
+MIT — see `LICENSE`.

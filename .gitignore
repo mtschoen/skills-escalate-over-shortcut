@@ -1,0 +1,3 @@
+# Local eval workspace: iteration outputs, grading logs, pilots.
+# Not versioned — each machine/user regenerates iteration artifacts locally.
+workspace/
