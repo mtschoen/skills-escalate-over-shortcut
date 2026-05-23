@@ -36,12 +36,14 @@ The check applies even when no pattern above matches verbatim. The shapes are th
 
 ## Test seam vs. escape hatch
 
-Adding configurability is not, by itself, a shortcut. The distinguishing question:
+Adding configurability is not, by itself, a shortcut. The distinguishing question is **not** "does the default have a non-null value" — every parameter has *some* default. The question is about call sites:
 
-> **Does this parameter have a legitimate production use-case with a non-null value?**
+> **Does any production call site pass a value other than the default?**
 
-- **Yes** → injection seam. A clock that defaults to `System.UTC` and accepts a fake in tests is real configurability.
-- **No, the production path always uses the default** → escape hatch. Document the test-only intent, or escalate to ask whether the production code should be re-shaped instead.
+Equivalent gut-check: *if you deleted the parameter and inlined the default as a constant, would any production code break?*
+
+- **Yes, real production callers pass non-default values** → injection seam. A `Clock` parameter that defaults to `Clock.systemUTC()` and is wired with a timezone-aware clock from the composition root is real configurability.
+- **No, every production caller uses the default; only the test passes something else** → escape hatch. The parameter exists *solely* so the test can override it. That's a test-only knob dressed up as a constructor param. Escalate to ask whether the production code should be re-shaped instead — use the test framework's virtual time (`runTest` + `advanceTimeBy`), expose a `Scheduler` the production composition actually wires, or inject a real abstraction with a meaningful production value.
 
 When in doubt — escalate.
 
@@ -99,7 +101,7 @@ Before any "phase done" or commit, silently answer:
 
 - Does the diff contain a pattern from the shapes above, or something rhyming?
 - Would I defend the shape of this change to a senior engineer without "just for the test" or "this machine happens to have"?
-- If a parameter or knob is new, does it have a non-null production use-case?
+- If a parameter or knob is new, does any production call site pass a non-default value? (If every production caller uses the default and only the test overrides it, it's a test-only knob — escalate.)
 - If I added a dependency, did the brief ask for it?
 - If something is suppressing a failure (`|| true`, empty `catch`, `[ExcludeFromCodeCoverage]`), is the suppression itself the thing I should escalate?
 

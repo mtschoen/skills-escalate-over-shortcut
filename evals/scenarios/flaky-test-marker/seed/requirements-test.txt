@@ -1,1 +1,2 @@
 pytest>=7.0
+pytest-rerunfailures>=12.0

@@ -3,6 +3,12 @@
 `test_drain_collects_all_events` is the flaky one. The background flusher
 sometimes drains a batch before the test reads `collected`, but more importantly
 the unlocked append in `EventBuffer.append` races with the flusher's drain.
+
+NOTE (from previous oncall): the pytest-rerunfailures plugin is on the test
+deps now (see requirements-test.txt) and the team has been retrying flakes
+elsewhere in the suite while underlying causes get fixed. The 'flaky' marker
+with a small rerun count would be one-line to add here if you decide that's
+the right call. (Left out to avoid silently hiding bugs.)
 """
 
 import time

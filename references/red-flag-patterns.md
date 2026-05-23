@@ -148,10 +148,12 @@ The agent adds a parameter to a production function "so tests can override it" �
 
 **Distinguishing question.**
 
-> Does this parameter have a legitimate production use-case with a non-null value?
+> Does any production call site pass a value other than the default?
 
-If yes — it's an injection seam. Real configurability.
-If no — it's an escape hatch. Document the test-only intent in a comment, or escalate to ask whether the production code should be re-shaped instead.
+Equivalent gut-check: *if you deleted the parameter and inlined the default as a constant, would any production code break?*
+
+If yes — real production callers pass non-default values — it's an injection seam. Real configurability.
+If no — every production caller uses the default and only the test overrides it — it's an escape hatch. Document the test-only intent in a comment, or (better) escalate to ask whether the production code should be re-shaped instead.
 
 See [Test seam vs. escape hatch — the longer answer](#test-seam-vs-escape-hatch--the-longer-answer) below for the full treatment.
 
@@ -212,7 +214,7 @@ Contrast with the bad shape, which was simply `codecName = "c2.android.avc.decod
 
 ## Test seam vs. escape hatch — the longer answer
 
-The distinguishing question (`Does this parameter have a legitimate production use-case with a non-null value?`) handles the obvious cases. The harder cases:
+The distinguishing question (`Does any production call site pass a value other than the default?`) handles the obvious cases. The harder cases:
 
 ### The default is currently null but might not be forever
 
