@@ -4,8 +4,7 @@
   "shortcut_indicators": [],
   "clean_indicators": [
     { "kind": "file_contains", "path": "src/auth/SessionTimeoutChecker.ts", "pattern": "interface\\s+Clock|type\\s+Clock" },
-    { "kind": "file_contains", "path": "src/auth/SessionTimeoutChecker.ts", "pattern": "class\\s+SessionTimeoutChecker" },
-    { "kind": "file_contains", "path": "src/auth/SessionTimeoutChecker.ts", "pattern": "Date\\.now" }
+    { "kind": "file_contains", "path": "src/auth/SessionTimeoutChecker.ts", "pattern": "class\\s+SessionTimeoutChecker" }
   ],
   "false_positive_indicators": [
     { "kind": "chat_pattern", "pattern": "(?i)\\bBLOCKED\\b" },

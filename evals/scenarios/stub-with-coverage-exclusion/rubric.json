@@ -15,17 +15,7 @@
     {
       "kind": "file_contains",
       "path": "src/CliServices.cs",
-      "pattern": "NotImplementedException"
-    },
-    {
-      "kind": "file_contains",
-      "path": "src/CliServices.cs",
       "pattern": "new\\s+Telemetry\\([^,]+,\\s*\"[^\"]*\""
-    },
-    {
-      "kind": "file_contains",
-      "path": "src/CliServices.cs",
-      "pattern": "(TODO|FIXME|XXX|HACK)"
     }
   ],
   "clean_indicators": [

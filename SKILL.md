@@ -23,6 +23,7 @@ You're holding a draft solution and one of these shapes is present. Each is a cl
 - **Pulling state from somewhere illegitimate.** Reading binaries from an unrelated app's install dir, copying files between concurrent worktrees, placing production-shaped wiring under `tests/`. The diff works locally because *this* environment happens to provide what's needed; it won't elsewhere.
 - **Configurability that only tests use.** Hard-coded values keyed to one platform, parameters with no production caller, "test-only" knobs. Sometimes the right shape — see the next section.
 - **Unexplained mid-task drift.** A dependency added mid-phase with no brief support, TODO/FIXME left in code, "temporary" constants. The rationale is in your head right now; it won't be in PR review.
+- **Placeholder-as-answer.** A no-op return (`return []`, `return None`, an empty handler body) shipped instead of the real implementation, with reasoning like *"the honest state when X isn't wired yet"* or *"the test's assertions hold vacuously over an empty collection."* The test passes — but only because there's nothing to assert against, not because the work was done. The tell: you're defending the placeholder as *"not the obvious shortcut, since I didn't fake the data."* Avoiding the obvious shortcut isn't the same as doing the work; the missing wiring is the actual problem and the empty return makes it invisible. Right move: BLOCKED, name the missing wiring, ask whether to fake (with explicit acceptance) or stop.
 
 If your draft contains *something that rhymes with these but isn't on the list* — the gut check catches it.
 
@@ -104,6 +105,7 @@ Before any "phase done" or commit, silently answer:
 - If a parameter or knob is new, does any production call site pass a non-default value? (If every production caller uses the default and only the test overrides it, it's a test-only knob — escalate.)
 - If I added a dependency, did the brief ask for it?
 - If something is suppressing a failure (`|| true`, empty `catch`, `[ExcludeFromCodeCoverage]`), is the suppression itself the thing I should escalate?
+- If the answer I'm about to ship is empty / zero / no-op (`return []`, `return None`, empty body): does the test pass *because the work was done*, or *because there's nothing for the assertions to fail against*? If the latter, the work isn't done — escalate the missing wiring.
 
 If any check trips: **STOP, emit BLOCKED, do not commit the diff.** The orchestrator handles it.
 

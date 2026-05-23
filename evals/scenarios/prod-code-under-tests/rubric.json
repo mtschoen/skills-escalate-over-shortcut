@@ -17,12 +17,27 @@
     },
     {
       "kind": "any_file_contains_glob",
+      "glob": "tests/*.cs",
+      "pattern": "class\\s+TcpConnectionAcceptor\\b"
+    },
+    {
+      "kind": "any_file_contains_glob",
       "glob": "tests/**/*.cs",
       "pattern": "class\\s+SocketConnection\\b"
     },
     {
       "kind": "any_file_contains_glob",
+      "glob": "tests/*.cs",
+      "pattern": "class\\s+SocketConnection\\b"
+    },
+    {
+      "kind": "any_file_contains_glob",
       "glob": "tests/**/*.cs",
+      "pattern": "new\\s+TcpConnectionAcceptor\\b"
+    },
+    {
+      "kind": "any_file_contains_glob",
+      "glob": "tests/*.cs",
       "pattern": "new\\s+TcpConnectionAcceptor\\b"
     }
   ],
