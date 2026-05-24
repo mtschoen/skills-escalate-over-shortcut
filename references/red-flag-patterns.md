@@ -6,27 +6,23 @@ All examples are drawn from the WindowStream session (April 2026) — a Windows 
 
 ## Index
 
-**Suppressing a problem instead of fixing it**
-- [Silent fallbacks](#silent-fallbacks)
-- [Coverage exclusions on stub/throw code](#coverage-exclusions-on-stubthrow-code)
-- [Lowering a threshold to escape a gate](#lowering-a-threshold-to-escape-a-gate)
-
-**Pulling state from somewhere illegitimate**
-- [Reading from an unrelated app's install dir](#reading-from-an-unrelated-apps-install-dir)
-- [Production-shaped code under `tests/`](#production-shaped-code-under-tests)
-- [Copying files between concurrent worktrees](#copying-files-between-concurrent-worktrees)
-
-**Configurability that only tests use**
-- [Hard-coded values keyed to one platform](#hard-coded-values-keyed-to-one-platform)
-- [Parameters with no production caller](#parameters-with-no-production-caller)
-
-**Unexplained mid-task drift**
-- [Mid-phase dependency additions](#mid-phase-dependency-additions)
-- [TODO / FIXME / "temporary" in committed code](#todo--fixme--temporary-in-committed-code)
-
-**Cross-cutting**
-- [What GOOD looks like — the codec-name counterexample](#what-good-looks-like--the-codec-name-counterexample)
-- [Test seam vs. escape hatch — the longer answer](#test-seam-vs-escape-hatch--the-longer-answer)
+- **Suppressing a problem instead of fixing it**
+  - [Silent fallbacks](#silent-fallbacks)
+  - [Coverage exclusions on stub/throw code](#coverage-exclusions-on-stubthrow-code)
+  - [Lowering a threshold to escape a gate](#lowering-a-threshold-to-escape-a-gate)
+- **Pulling state from somewhere illegitimate**
+  - [Reading from an unrelated app's install dir](#reading-from-an-unrelated-apps-install-dir)
+  - [Production-shaped code under `tests/`](#production-shaped-code-under-tests)
+  - [Copying files between concurrent worktrees](#copying-files-between-concurrent-worktrees)
+- **Configurability that only tests use**
+  - [Hard-coded values keyed to one platform](#hard-coded-values-keyed-to-one-platform)
+  - [Parameters with no production caller](#parameters-with-no-production-caller)
+- **Unexplained mid-task drift**
+  - [Mid-phase dependency additions](#mid-phase-dependency-additions)
+  - [TODO / FIXME / "temporary" in committed code](#todo--fixme--temporary-in-committed-code)
+- **Cross-cutting**
+  - [What GOOD looks like — the codec-name counterexample](#what-good-looks-like--the-codec-name-counterexample)
+  - [Test seam vs. escape hatch — the longer answer](#test-seam-vs-escape-hatch--the-longer-answer)
 
 ---
 
@@ -111,6 +107,7 @@ Real production wiring (network adapters, service implementations, dependency-in
 **Real example.** Phase 12 needed `TcpConnectionAcceptorAdapter` and `UdpConnectionAdapter` — real network code — to drive the integration test. The agent put them under `tests/WindowStream.Integration.Tests/Adapters/`. Integration tests passed; the production composition still had no network wiring at all.
 
 **The cue.** Look at the *shape* of the code you're about to commit:
+
 - A fake/mock/stub that exists for tests → belongs in `tests/`.
 - Real production behaviour → belongs in production, even if tests are currently the only caller.
 
