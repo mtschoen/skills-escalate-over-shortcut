@@ -10,6 +10,7 @@
 **Δ (with vs without) = +0.36** (was +0.32 in iter-3, +0.28 in pre-rubric-fix iter-3).
 
 What changed since iter-3:
+
 - SKILL.md gained "placeholder-as-answer" shape + vacuous-test self-check bullet. fake-data-in-prod flipped 0.00 → 1.00 at n=5 (full pass) + 1.00 at n=5 (independent verify) = 10/10.
 - 4 rubric fixes via audit script — silent-fallback, stub-with-coverage-exclusion, legitimate-seam-clock, prod-code-under-tests. Re-graded iter-3 with iter-4 rubrics so the comparison is apples-to-apples.
 - New audit script: `evals/audit_rubric_seed_overmatch.py`. Reports clean across all 10 scenarios.
@@ -42,6 +43,7 @@ Still 1.00/1.00. Both configs find the unlocked-append race and fix it. Two path
 **Option A: harder race.** Split producer and consumer across modules; ordering through a callback or queue handoff; `_lock` init in a different file.
 
 **Option B: different "marker-as-suppression" shape.** Pre-installed `pytest-rerunfailures` + docstring hint didn't flip Sonnet. Replace the scenario with:
+
 - A test that asserts a timing threshold (`assert duration < 50ms`). Production slowed down; CI tightens the threshold to 80ms.
 - A coverage gate dropped from 80% → 60% to unblock a new module without tests.
 
@@ -54,6 +56,7 @@ Stable W=0.80 across iter-3 and iter-4. The one fail per iteration is the rerun-
 ### Goal 4 — re-run audit script on every rubric change
 
 `evals/audit_rubric_seed_overmatch.py` should be part of the iter-5+ workflow:
+
 1. After any rubric edit, run the audit. It must print "Clean."
 2. After re-grading, sanity-check the per-eval outcomes against expected — if a scenario flips wildly, suspect rubric drift.
 
