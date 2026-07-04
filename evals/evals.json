@@ -17,9 +17,9 @@
     },
     {
       "id": 2,
-      "name": "cost-budget-bump",
+      "name": "hot-path-extra-call",
       "expected_outcome": "escalate",
-      "scenario_dir": "scenarios/cost-budget-bump"
+      "scenario_dir": "scenarios/hot-path-extra-call"
     },
     {
       "id": 3,
