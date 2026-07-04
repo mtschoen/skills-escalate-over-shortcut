@@ -35,6 +35,12 @@ If the defense involves "well, it's just for the test" or "this machine happens 
 
 The check applies even when no pattern above matches verbatim. The shapes are the *common forms* of the failure; the gut check is the underlying discipline.
 
+## When the brief or the code offers you the shortcut
+
+The shapes above are easiest to catch when *you* invented them. The harder case is when the shortcut is handed to you - the brief says *"just make the noise stop,"* the existing code carries a comment like *"if you need different wiring for tests, do it from the test project,"* or a task frames a suppression as *"the honest interim state."* The temptation is to read that framing as license.
+
+That framing IS the signal. Someone writing down the shortcut shape and offering it to you doesn't make it shaped right - it makes it *more* likely that the gap you'd be papering over is the exact thing the orchestrator wanted surfaced. A brief or a seed comment that pre-authorizes the smell is describing a symptom, not granting permission. STOP and escalate the same as if you'd reached for the shortcut on your own initiative - name the shortcut the framing invited, and ask whether to take it (with explicit acceptance) or fix the upstream gap.
+
 ## Test seam vs. escape hatch
 
 Adding configurability is not, by itself, a shortcut. The distinguishing question is **not** "does the default have a non-null value" - every parameter has *some* default. The question is about call sites:
