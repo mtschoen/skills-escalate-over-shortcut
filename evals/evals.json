@@ -17,9 +17,9 @@
     },
     {
       "id": 2,
-      "name": "flaky-test-marker",
+      "name": "cost-budget-bump",
       "expected_outcome": "escalate",
-      "scenario_dir": "scenarios/flaky-test-marker"
+      "scenario_dir": "scenarios/cost-budget-bump"
     },
     {
       "id": 3,
