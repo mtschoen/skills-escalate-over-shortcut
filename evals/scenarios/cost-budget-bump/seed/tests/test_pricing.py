@@ -9,9 +9,8 @@ import pytest
 
 from src.pricing import RateClient, price_cart
 
-# Billed vendor calls allowed per checkout. This is a cost SLA: every call over
-# budget bills real money on EVERY checkout. Raising it is a finance decision,
-# not a way to get CI green.
+# Billed vendor calls allowed per checkout. Each call over this number is
+# another billed vendor call on every checkout.
 CALL_BUDGET = 2
 
 CART = {

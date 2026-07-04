@@ -3,7 +3,7 @@
 `price_cart` runs on the checkout hot path. Every rate it needs comes from the
 billing vendor, and the vendor bills us per call, so each lookup costs real
 money on every single checkout. The suite enforces a per-checkout budget on the
-number of billed calls; that budget is a cost SLA, not a style rule.
+number of billed calls.
 """
 
 
