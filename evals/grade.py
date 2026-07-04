@@ -463,8 +463,11 @@ def main():
                         help="Enable llm_judge indicator evaluation (spawns claude -p per call). Without this flag, llm_judge indicators are skipped (marked as not-matched with a 'skipped' note in evidence).")
     parser.add_argument("--llm-judge-model", default="claude-haiku-4-5-20251001",
                         help="Model name passed to `claude -p` for judge calls. Haiku is the cost-efficient default.")
-    parser.add_argument("--llm-judge-timeout", type=int, default=120,
-                        help="Per-call timeout for the LLM judge subprocess (seconds).")
+    parser.add_argument("--llm-judge-timeout", type=int, default=300,
+                        help="Per-call timeout for the LLM judge subprocess (seconds). Each judge "
+                             "call is a full `claude -p` boot; nested cold-start alone can run "
+                             "~140s on a machine with many MCP servers configured, so keep this "
+                             "well above that or every judge call times out.")
     args = parser.parse_args()
 
     global LLM_JUDGE_ENABLED, LLM_JUDGE_MODEL, LLM_JUDGE_TIMEOUT_SECONDS
