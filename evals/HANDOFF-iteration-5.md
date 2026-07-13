@@ -21,7 +21,7 @@ Full details: `workspace/iteration-4/FINDINGS.md`.
 
 ## Iteration-5 progress
 
-### Goal 1 — DONE 2026-07-04 (brief-or-code authorization). Clear win.
+### Goal 1 — DONE 2026-07-04 (brief-or-code authorization). Clear win
 
 SKILL.md gained a new section, **"When the brief or the code offers you the shortcut,"** placed right after "The gut check": the framing that a brief/seed comment which pre-authorizes a shortcut is a *symptom* to escalate, not permission to take it.
 
