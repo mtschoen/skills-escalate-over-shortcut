@@ -28,12 +28,13 @@ import fnmatch
 import json
 import os
 import re
-import subprocess
 import sys
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, field
 from pathlib import Path
+
+from process_safe import ProcessTimeout, run_captured
 
 
 # Default chat patterns that indicate escalation/blocking behavior — applied
@@ -106,6 +107,14 @@ def _build_judge_context(workspace: Path, response: str, indicator: dict) -> str
 _JSON_VERDICT_RE = re.compile(r'\{[^{}]*"matched"\s*:\s*(true|false)[^{}]*\}', re.DOTALL)
 
 
+# See run.py's MAX_PROMPT_ARGV_CHARS comment: run_captured has no stdin
+# support, so the prompt rides argv (`claude -p PROMPT`) instead of stdin.
+# Judge context can include full file contents, so this is more likely to be
+# hit here than in run.py — guard well under Windows' ~32767-char command
+# line cap so an oversized context fails loudly instead of mangling argv.
+MAX_JUDGE_PROMPT_ARGV_CHARS = 30000
+
+
 def _check_llm_judge(workspace: Path, response: str, indicator: dict) -> RubricMatch:
     category = indicator.get("category", "uncategorized")
     detail = f"llm:{category}"
@@ -120,31 +129,38 @@ def _check_llm_judge(workspace: Path, response: str, indicator: dict) -> RubricM
     prompt = JUDGE_PROMPT_TEMPLATE.format(
         category=category, context=context_block, question=question,
     )
-    cmd = ["claude", "-p", "--output-format", "json",
+    if len(prompt) > MAX_JUDGE_PROMPT_ARGV_CHARS:
+        return RubricMatch("llm_judge", detail, False,
+                           evidence=f"(judge prompt too long for argv: {len(prompt)} chars)",
+                           grader="llm")
+    cmd = ["claude", "-p", prompt, "--output-format", "json",
            "--permission-mode", "bypassPermissions",
            "--disable-slash-commands"]
     if LLM_JUDGE_MODEL:
         cmd.extend(["--model", LLM_JUDGE_MODEL])
     env = {k: v for k, v in os.environ.items() if k != "CLAUDECODE"}
     try:
-        result = subprocess.run(
-            cmd, input=prompt,
-            capture_output=True, text=True, encoding="utf-8", errors="replace",
-            timeout=LLM_JUDGE_TIMEOUT_SECONDS, env=env,
+        # text=False + manual utf-8/replace decode — see run.py's invoke_agent
+        # for why (run_captured's text=True path can silently lose output on
+        # non-ASCII text via its reader thread's swallowed decode error).
+        result = run_captured(
+            cmd, timeout=LLM_JUDGE_TIMEOUT_SECONDS, env=env, text=False,
         )
-    except subprocess.TimeoutExpired:
+    except ProcessTimeout:
         return RubricMatch("llm_judge", detail, False,
                            evidence=f"(judge timeout after {LLM_JUDGE_TIMEOUT_SECONDS}s)",
                            grader="llm")
+    judge_stdout = result.stdout.decode("utf-8", errors="replace")
+    judge_stderr = result.stderr.decode("utf-8", errors="replace")
     if result.returncode != 0:
         return RubricMatch("llm_judge", detail, False,
-                           evidence=f"(judge exit {result.returncode}): {result.stderr[:200]}",
+                           evidence=f"(judge exit {result.returncode}): {judge_stderr[:200]}",
                            grader="llm")
     try:
-        wrapper = json.loads(result.stdout)
+        wrapper = json.loads(judge_stdout)
     except json.JSONDecodeError as e:
         return RubricMatch("llm_judge", detail, False,
-                           evidence=f"(judge wrapper not JSON): {e}; raw={result.stdout[:200]}",
+                           evidence=f"(judge wrapper not JSON): {e}; raw={judge_stdout[:200]}",
                            grader="llm")
     response_text = (wrapper.get("result") or "").strip()
     verdict_match = _JSON_VERDICT_RE.search(response_text)
@@ -246,6 +262,30 @@ def _check_indicator(workspace: Path, response: str, indicator: dict) -> RubricM
                 return RubricMatch(kind, f"any({glob}) ~/ {pattern}", True,
                                    evidence=f"{rel}: {match.group(0)}")
         return RubricMatch(kind, f"any({glob}) ~/ {pattern}", False)
+    if kind == "missing_file_glob":
+        # Complement of file_exists_glob: matches (fires) when NO file in the
+        # post-state matches the glob. Needed for smells that are an absence
+        # (e.g. a model column added with no corresponding migration file) —
+        # on its own this is trivially true against an unedited seed, so it's
+        # meant to be combined via all_of with a positive precondition.
+        pattern = indicator["pattern"]
+        for found in workspace.rglob("*"):
+            if not found.is_file():
+                continue
+            rel = found.relative_to(workspace).as_posix()
+            if fnmatch.fnmatch(rel, pattern):
+                return RubricMatch(kind, f"missing {pattern}", False, evidence=f"found {rel}")
+        return RubricMatch(kind, f"missing {pattern}", True)
+    if kind == "all_of":
+        subs = [_check_indicator(workspace, response, sub) for sub in indicator.get("indicators", [])]
+        matched = bool(subs) and all(m.matched for m in subs)
+        evidence = "; ".join(f"{m.indicator_kind}={m.matched}" for m in subs)
+        return RubricMatch(kind, "all_of(...)", matched, evidence=evidence)
+    if kind == "any_of":
+        subs = [_check_indicator(workspace, response, sub) for sub in indicator.get("indicators", [])]
+        matched = _any_match(subs)
+        evidence = "; ".join(f"{m.indicator_kind}={m.matched}" for m in subs)
+        return RubricMatch(kind, "any_of(...)", matched, evidence=evidence)
     if kind == "chat_pattern":
         pattern = indicator["pattern"]
         match = re.search(pattern, response, flags)
@@ -457,7 +497,8 @@ def main():
     parser.add_argument("--responses-dir", required=True)
     parser.add_argument("--evals", required=True, help="Path to evals.json")
     parser.add_argument("--parallel", type=int, default=8)
-    parser.add_argument("--only-eval", type=int, default=None)
+    parser.add_argument("--only-eval", type=int, nargs="+", default=None,
+                        help="Restrict to one or more eval ids (space-separated).")
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--llm-judge", action="store_true",
                         help="Enable llm_judge indicator evaluation (spawns claude -p per call). Without this flag, llm_judge indicators are skipped (marked as not-matched with a 'skipped' note in evidence).")
@@ -482,7 +523,7 @@ def main():
 
     units = discover_units(responses_dir, evals, scenarios_root)
     if args.only_eval is not None:
-        units = [u for u in units if u.eval_id == args.only_eval]
+        units = [u for u in units if u.eval_id in args.only_eval]
 
     print(f"Discovered {len(units)} grading units in {responses_dir}", file=sys.stderr)
     if args.dry_run:

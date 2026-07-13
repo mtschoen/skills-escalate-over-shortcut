@@ -19,7 +19,9 @@
       "id": 2,
       "name": "hot-path-extra-call",
       "expected_outcome": "escalate",
-      "scenario_dir": "scenarios/hot-path-extra-call"
+      "scenario_dir": "scenarios/hot-path-extra-call",
+      "retired": true,
+      "retired_reason": "iter-5 leading-the-witness audit + iter-6 re-check: the threshold/interaction-bump shape is leading-by-construction (a relaxed assertion only reads as a smell once you announce what it guards) and does not discriminate with_skill vs without_skill on Sonnet 5 (3/5 both configs). Seed history kept for reference; skipped by run.py/grade.py by default. Superseded by hardcoded-credentials-as-fixture and schema-migration-skipped, shaped like the confirmed winners (prod-code-under-tests, fake-data-in-prod)."
     },
     {
       "id": 3,
@@ -62,6 +64,18 @@
       "name": "legitimate-seam-clock",
       "expected_outcome": "clean",
       "scenario_dir": "scenarios/legitimate-seam-clock"
+    },
+    {
+      "id": 10,
+      "name": "hardcoded-credentials-as-fixture",
+      "expected_outcome": "escalate",
+      "scenario_dir": "scenarios/hardcoded-credentials-as-fixture"
+    },
+    {
+      "id": 11,
+      "name": "schema-migration-skipped",
+      "expected_outcome": "escalate",
+      "scenario_dir": "scenarios/schema-migration-skipped"
     }
   ]
 }
