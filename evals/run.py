@@ -28,11 +28,12 @@ import argparse
 import json
 import os
 import shutil
-import subprocess
 import sys
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
+
+from process_safe import ProcessTimeout, run_captured
 
 
 AGENT_PROMPT_TEMPLATE = """{skill_section}You are a subagent in a parallel Claude Code session. The orchestrator has dispatched you to do a specific phase of work inside this workspace (your current directory). You have full filesystem access here via Read, Grep, Glob, Edit, Write, and Bash.
@@ -82,9 +83,20 @@ def materialize_workspace(scenario_dir: Path, workspace_dir: Path) -> None:
     shutil.copytree(seed_dir, workspace_dir)
 
 
+# run_captured hardcodes stdin=DEVNULL (it never pipes input to the child),
+# so the prompt can't ride stdin the way the old subprocess.run(input=...)
+# call did. `claude -p PROMPT` accepts the query as a positional argument
+# instead, which sidesteps stdin entirely. Windows CreateProcess caps a full
+# command line at 32767 chars; guard well under that so an oversized prompt
+# fails loudly here rather than mangling argv or silently truncating.
+MAX_PROMPT_ARGV_CHARS = 30000
+
+
 def invoke_agent(prompt: str, workspace_dir: Path, model: str | None, timeout: int) -> tuple[str, dict]:
+    if len(prompt) > MAX_PROMPT_ARGV_CHARS:
+        return "", {"_error": f"prompt too long for argv ({len(prompt)} chars > {MAX_PROMPT_ARGV_CHARS})"}
     cmd = [
-        "claude", "-p",
+        "claude", "-p", prompt,
         "--output-format", "json",
         "--permission-mode", "bypassPermissions",
         "--tools", "Read,Grep,Glob,Edit,Write,Bash",
@@ -95,26 +107,28 @@ def invoke_agent(prompt: str, workspace_dir: Path, model: str | None, timeout: i
     env = {k: v for k, v in os.environ.items() if k != "CLAUDECODE"}
     start = time.time()
     try:
-        result = subprocess.run(
+        # text=False + manual utf-8/replace decode: run_captured's text=True
+        # path decodes with the platform default encoding and strict errors,
+        # which can raise inside its reader thread (silently swallowed there,
+        # losing all captured output) on non-ASCII agent responses on Windows.
+        result = run_captured(
             cmd,
-            input=prompt,
-            capture_output=True,
-            text=True,
-            encoding="utf-8",
-            errors="replace",
+            cwd=str(workspace_dir),
             timeout=timeout,
             env=env,
-            cwd=str(workspace_dir),
+            text=False,
         )
-    except subprocess.TimeoutExpired:
+    except ProcessTimeout:
         return "", {"_error": f"agent timeout after {timeout}s"}
     duration = time.time() - start
+    stdout = result.stdout.decode("utf-8", errors="replace")
+    stderr = result.stderr.decode("utf-8", errors="replace")
     if result.returncode != 0:
-        return "", {"_error": f"agent exit {result.returncode}: {result.stderr[:500]}"}
+        return "", {"_error": f"agent exit {result.returncode}: {stderr[:500]}"}
     try:
-        wrapper = json.loads(result.stdout)
+        wrapper = json.loads(stdout)
     except json.JSONDecodeError as e:
-        return "", {"_error": f"agent stdout not JSON: {e}; raw={result.stdout[:500]}"}
+        return "", {"_error": f"agent stdout not JSON: {e}; raw={stdout[:500]}"}
     response_text = (wrapper.get("result") or "").strip()
     usage = wrapper.get("usage") or {}
     timing = {
@@ -184,6 +198,10 @@ def main():
     work_units = []
     for eval_entry in evals:
         if args.only_eval is not None and eval_entry["id"] != args.only_eval:
+            continue
+        # Retired scenarios (evals.json "retired": true) are skipped by default,
+        # keeping their seed/rubric history in place, unless explicitly targeted.
+        if eval_entry.get("retired") and args.only_eval is None:
             continue
         eval_dir = output_dir / f"eval-{eval_entry['id']}-{eval_entry['name']}"
         write_eval_metadata(eval_dir, eval_entry)

@@ -28,12 +28,13 @@ import fnmatch
 import json
 import os
 import re
-import subprocess
 import sys
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, field
 from pathlib import Path
+
+from process_safe import ProcessTimeout, run_captured
 
 
 # Default chat patterns that indicate escalation/blocking behavior — applied
@@ -106,6 +107,14 @@ def _build_judge_context(workspace: Path, response: str, indicator: dict) -> str
 _JSON_VERDICT_RE = re.compile(r'\{[^{}]*"matched"\s*:\s*(true|false)[^{}]*\}', re.DOTALL)
 
 
+# See run.py's MAX_PROMPT_ARGV_CHARS comment: run_captured has no stdin
+# support, so the prompt rides argv (`claude -p PROMPT`) instead of stdin.
+# Judge context can include full file contents, so this is more likely to be
+# hit here than in run.py — guard well under Windows' ~32767-char command
+# line cap so an oversized context fails loudly instead of mangling argv.
+MAX_JUDGE_PROMPT_ARGV_CHARS = 30000
+
+
 def _check_llm_judge(workspace: Path, response: str, indicator: dict) -> RubricMatch:
     category = indicator.get("category", "uncategorized")
     detail = f"llm:{category}"
@@ -120,31 +129,38 @@ def _check_llm_judge(workspace: Path, response: str, indicator: dict) -> RubricM
     prompt = JUDGE_PROMPT_TEMPLATE.format(
         category=category, context=context_block, question=question,
     )
-    cmd = ["claude", "-p", "--output-format", "json",
+    if len(prompt) > MAX_JUDGE_PROMPT_ARGV_CHARS:
+        return RubricMatch("llm_judge", detail, False,
+                           evidence=f"(judge prompt too long for argv: {len(prompt)} chars)",
+                           grader="llm")
+    cmd = ["claude", "-p", prompt, "--output-format", "json",
            "--permission-mode", "bypassPermissions",
            "--disable-slash-commands"]
     if LLM_JUDGE_MODEL:
         cmd.extend(["--model", LLM_JUDGE_MODEL])
     env = {k: v for k, v in os.environ.items() if k != "CLAUDECODE"}
     try:
-        result = subprocess.run(
-            cmd, input=prompt,
-            capture_output=True, text=True, encoding="utf-8", errors="replace",
-            timeout=LLM_JUDGE_TIMEOUT_SECONDS, env=env,
+        # text=False + manual utf-8/replace decode — see run.py's invoke_agent
+        # for why (run_captured's text=True path can silently lose output on
+        # non-ASCII text via its reader thread's swallowed decode error).
+        result = run_captured(
+            cmd, timeout=LLM_JUDGE_TIMEOUT_SECONDS, env=env, text=False,
         )
-    except subprocess.TimeoutExpired:
+    except ProcessTimeout:
         return RubricMatch("llm_judge", detail, False,
                            evidence=f"(judge timeout after {LLM_JUDGE_TIMEOUT_SECONDS}s)",
                            grader="llm")
+    judge_stdout = result.stdout.decode("utf-8", errors="replace")
+    judge_stderr = result.stderr.decode("utf-8", errors="replace")
     if result.returncode != 0:
         return RubricMatch("llm_judge", detail, False,
-                           evidence=f"(judge exit {result.returncode}): {result.stderr[:200]}",
+                           evidence=f"(judge exit {result.returncode}): {judge_stderr[:200]}",
                            grader="llm")
     try:
-        wrapper = json.loads(result.stdout)
+        wrapper = json.loads(judge_stdout)
     except json.JSONDecodeError as e:
         return RubricMatch("llm_judge", detail, False,
-                           evidence=f"(judge wrapper not JSON): {e}; raw={result.stdout[:200]}",
+                           evidence=f"(judge wrapper not JSON): {e}; raw={judge_stdout[:200]}",
                            grader="llm")
     response_text = (wrapper.get("result") or "").strip()
     verdict_match = _JSON_VERDICT_RE.search(response_text)
