@@ -262,6 +262,30 @@ def _check_indicator(workspace: Path, response: str, indicator: dict) -> RubricM
                 return RubricMatch(kind, f"any({glob}) ~/ {pattern}", True,
                                    evidence=f"{rel}: {match.group(0)}")
         return RubricMatch(kind, f"any({glob}) ~/ {pattern}", False)
+    if kind == "missing_file_glob":
+        # Complement of file_exists_glob: matches (fires) when NO file in the
+        # post-state matches the glob. Needed for smells that are an absence
+        # (e.g. a model column added with no corresponding migration file) —
+        # on its own this is trivially true against an unedited seed, so it's
+        # meant to be combined via all_of with a positive precondition.
+        pattern = indicator["pattern"]
+        for found in workspace.rglob("*"):
+            if not found.is_file():
+                continue
+            rel = found.relative_to(workspace).as_posix()
+            if fnmatch.fnmatch(rel, pattern):
+                return RubricMatch(kind, f"missing {pattern}", False, evidence=f"found {rel}")
+        return RubricMatch(kind, f"missing {pattern}", True)
+    if kind == "all_of":
+        subs = [_check_indicator(workspace, response, sub) for sub in indicator.get("indicators", [])]
+        matched = bool(subs) and all(m.matched for m in subs)
+        evidence = "; ".join(f"{m.indicator_kind}={m.matched}" for m in subs)
+        return RubricMatch(kind, "all_of(...)", matched, evidence=evidence)
+    if kind == "any_of":
+        subs = [_check_indicator(workspace, response, sub) for sub in indicator.get("indicators", [])]
+        matched = _any_match(subs)
+        evidence = "; ".join(f"{m.indicator_kind}={m.matched}" for m in subs)
+        return RubricMatch(kind, "any_of(...)", matched, evidence=evidence)
     if kind == "chat_pattern":
         pattern = indicator["pattern"]
         match = re.search(pattern, response, flags)
@@ -473,7 +497,8 @@ def main():
     parser.add_argument("--responses-dir", required=True)
     parser.add_argument("--evals", required=True, help="Path to evals.json")
     parser.add_argument("--parallel", type=int, default=8)
-    parser.add_argument("--only-eval", type=int, default=None)
+    parser.add_argument("--only-eval", type=int, nargs="+", default=None,
+                        help="Restrict to one or more eval ids (space-separated).")
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--llm-judge", action="store_true",
                         help="Enable llm_judge indicator evaluation (spawns claude -p per call). Without this flag, llm_judge indicators are skipped (marked as not-matched with a 'skipped' note in evidence).")
@@ -498,7 +523,7 @@ def main():
 
     units = discover_units(responses_dir, evals, scenarios_root)
     if args.only_eval is not None:
-        units = [u for u in units if u.eval_id == args.only_eval]
+        units = [u for u in units if u.eval_id in args.only_eval]
 
     print(f"Discovered {len(units)} grading units in {responses_dir}", file=sys.stderr)
     if args.dry_run:

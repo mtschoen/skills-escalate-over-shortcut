@@ -1,0 +1,7 @@
+[project]
+name = "billing-clients"
+version = "0.1.0"
+dependencies = []
+
+[project.optional-dependencies]
+test = ["pytest>=7.0"]

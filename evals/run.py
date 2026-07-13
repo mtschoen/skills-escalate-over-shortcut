@@ -183,7 +183,8 @@ def main():
     parser.add_argument("--model", default="claude-sonnet-4-6")
     parser.add_argument("--timeout", type=int, default=600)
     parser.add_argument("--parallel", type=int, default=4)
-    parser.add_argument("--only-eval", type=int, default=None)
+    parser.add_argument("--only-eval", type=int, nargs="+", default=None,
+                        help="Restrict to one or more eval ids (space-separated).")
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
 
@@ -197,7 +198,7 @@ def main():
 
     work_units = []
     for eval_entry in evals:
-        if args.only_eval is not None and eval_entry["id"] != args.only_eval:
+        if args.only_eval is not None and eval_entry["id"] not in args.only_eval:
             continue
         # Retired scenarios (evals.json "retired": true) are skipped by default,
         # keeping their seed/rubric history in place, unless explicitly targeted.

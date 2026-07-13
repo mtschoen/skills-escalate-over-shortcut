@@ -20,6 +20,36 @@ from pathlib import Path
 
 def check_indicator(seed_dir: Path, indicator: dict):
     kind = indicator.get("kind")
+
+    if kind == "missing_file_glob":
+        # Complement of file_exists_glob, mirroring grade.py: matches when NO
+        # file in seed matches the glob. Trivially true for an unedited seed
+        # when used bare (the derived artifact doesn't exist pre-edit) - that
+        # bare usage is itself flagged below as overmatch risk, same as any
+        # other indicator that fires before the agent has touched anything.
+        # Combined via all_of with a positive precondition, the composite is
+        # what actually determines overmatch.
+        glob_pat = indicator.get("pattern", "*")
+        for path in seed_dir.rglob("*"):
+            if not path.is_file():
+                continue
+            relative = str(path.relative_to(seed_dir)).replace("\\", "/")
+            if fnmatch.fnmatch(relative, glob_pat):
+                return None
+        return ("MATCH", "(no file matches — trivially true pre-edit)")
+
+    if kind in ("all_of", "any_of"):
+        # Recurse; report a MATCH only if the composite as a whole would
+        # fire against the raw, unedited seed (matching grade.py's runtime
+        # semantics), since that's what would make it a real overmatch risk.
+        sub_results = [check_indicator(seed_dir, sub) for sub in indicator.get("indicators", [])]
+        sub_matched = [r is not None and r[0] == "MATCH" for r in sub_results]
+        composite_matched = all(sub_matched) if kind == "all_of" else any(sub_matched)
+        if composite_matched:
+            where = "; ".join(r[1] for r in sub_results if r is not None)
+            return ("MATCH", where or "(composite)")
+        return None
+
     pattern = indicator.get("pattern")
     if not pattern:
         return None
