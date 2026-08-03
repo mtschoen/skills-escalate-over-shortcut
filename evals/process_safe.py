@@ -1,34 +1,33 @@
-# Vendored from schoen-lab packages/process_safe/src/process_safe/process.py
+# Vendored from an internal process_safe package
 # source SHA: 32a52ba6d52158f3b39bebdfbd4df0282aff226a (2026-06-09)
 # Vendored rather than depended-on because this eval harness has no dependency
-# on the schoen-lab workspace. Do not hand-edit below this point except to
+# on that package's workspace. Do not hand-edit below this point except to
 # re-sync with a newer source SHA - update the header when you do.
 
 """Sanctioned subprocess wrapper - THE ONLY module allowed to call subprocess.
 
 This is the `process_safe` package: a tiny, zero-dependency home for the one
-subprocess pattern every schoen-lab package is allowed to use. The reason it
+subprocess pattern every consuming package is allowed to use. The reason it
 exists is bpo-31935: ``subprocess.run(capture_output=True, timeout=...)`` can
 wedge *forever* on Windows when the child spawns a grandchild that inherits the
 stdout pipe - CPython's timeout kills only the direct child, the grandchild
-holds the pipe open, and the call never returns. This hung ``add_task`` for
-~4h once (see project_tracker #105, which moved that one path to pygit2).
+holds the pipe open, and the call never returns. This hung a task-queue write
+path for ~4h once, which moved that one path to pygit2.
 
 ``run_captured`` dodges the whole class by reading the child's pipes in a
 daemon thread we can *abandon*: on timeout we kill the child and raise, rather
 than blocking on the read.
 
-ruff TID251 bans ``subprocess.run``/``Popen``/etc. in the consuming packages
-(``project_tracker``, ``pr_crew``); TID251 is NOT enabled here because this
-module is the sanctioned home. New code that needs to shell out must call
-``run_captured`` / ``run_inherit`` / ``spawn_detached`` here - never
-``subprocess`` directly.
+ruff TID251 bans ``subprocess.run``/``Popen``/etc. in the consuming packages;
+TID251 is NOT enabled here because this module is the sanctioned home. New
+code that needs to shell out must call ``run_captured`` / ``run_inherit`` /
+``spawn_detached`` here - never ``subprocess`` directly.
 
-The one consumer that keeps its own ``# noqa: TID251`` is
-``pr_crew.harness._stream``: it streams a child's stdout/stderr line-by-line
-under a live budget (terminate-then-kill), a fundamentally different shape from
-the capture-at-end ``run_captured``; it drains continuously and never blocks on
-a capture-with-timeout, so it is not exposed to bpo-31935.
+One consumer keeps its own ``# noqa: TID251`` for a helper that streams a
+child's stdout/stderr line-by-line under a live budget (terminate-then-kill),
+a fundamentally different shape from the capture-at-end ``run_captured``; it
+drains continuously and never blocks on a capture-with-timeout, so it is not
+exposed to bpo-31935.
 """
 
 from __future__ import annotations
