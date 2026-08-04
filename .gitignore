@@ -1,5 +1,5 @@
 # Local eval workspace: iteration outputs, grading logs, pilots.
-# Not versioned — each machine/user regenerates iteration artifacts locally.
+# Not versioned - each machine/user regenerates iteration artifacts locally.
 workspace/
 
 # Python bytecode (from running evals/grade.py etc. locally).

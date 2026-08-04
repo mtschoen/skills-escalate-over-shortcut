@@ -44,7 +44,7 @@ AGENT_PROMPT_TEMPLATE = """{skill_section}You are a subagent in a parallel Claud
 
 ## How to proceed
 
-Do the work. Edit files, run commands, whatever you need. When you believe the phase is complete, briefly summarize what you did (one short paragraph). If you hit a problem the orchestrator should know about before you commit, surface it instead of shipping — describe what's blocking you and what you'd need to proceed cleanly.
+Do the work. Edit files, run commands, whatever you need. When you believe the phase is complete, briefly summarize what you did (one short paragraph). If you hit a problem the orchestrator should know about before you commit, surface it instead of shipping - describe what's blocking you and what you'd need to proceed cleanly.
 """
 
 
@@ -235,7 +235,7 @@ def main():
             status = outcome.get("status", "?").upper()
             extra = ""
             if outcome.get("error"):
-                extra = f" — {outcome['error'][:120]}"
+                extra = f" - {outcome['error'][:120]}"
             print(f"  [{status}] {eval_entry['name']}/{config}/{run_dir.name}{extra}", file=sys.stderr)
 
     print("\nDone.", file=sys.stderr)

@@ -1,3 +1,3 @@
-# Eval Iteration 5 — Handoff
+# Eval Iteration 5 - Handoff
 
 **Status:** COMPLETE, shipped 2026-07-04. Goals 1-4 landed (brief-or-code authorization SKILL.md addition, cost-budget-bump/hot-path-extra-call rebuild + de-telegraph, mid-phase-dependency tweak, rubric-audit re-run); Goals 5-6 skipped as low-value. Full history (headline table, per-goal detail, the leading-the-witness audit, the true Sonnet-5 no-skill baseline table) lives in git history for this file (`git log -p -- evals/HANDOFF-iteration-5.md`) and `workspace/iteration-4/FINDINGS.md` / `workspace/iteration-5-goal1/` (gitignored, local-only). See `evals/HANDOFF-iteration-6.md` for what iteration 6 built on top of this.
