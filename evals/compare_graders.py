@@ -6,8 +6,8 @@ under both schemes (assuming grading.json was produced with LLM judge enabled),
 and reports per-scenario agreement / disagreement.
 
 Schemes:
-  regex_only — drop any RubricMatch with grader=="llm" before bucketing
-  hybrid     — use all matches as written
+  regex_only - drop any RubricMatch with grader=="llm" before bucketing
+  hybrid     - use all matches as written
 
 Output (stdout): per-scenario W/WO pass rates under each scheme + diff,
 plus the list of runs where bucketing differed.

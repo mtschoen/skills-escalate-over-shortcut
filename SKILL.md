@@ -13,7 +13,7 @@ Agents optimize locally. The work item said "make this phase pass"; the phase pa
 
 **The failure mode this skill must NOT create:** a paranoid agent that flags every careful piece of design as a shortcut. The bar is *concrete*: the draft contains a pattern the agent would be embarrassed to defend in PR review.
 
-This is **agent → self** review. Companion to `pushback`, which is Claude → user.
+This is **agent -> self** review. Companion to `pushback`, which is Claude -> user.
 
 ## When this fires
 
@@ -49,8 +49,8 @@ Adding configurability is not, by itself, a shortcut. The distinguishing questio
 
 Equivalent gut-check: *if you deleted the parameter and inlined the default as a constant, would any production code break?*
 
-- **Yes, real production callers pass non-default values** → injection seam. A `Clock` parameter that defaults to `Clock.systemUTC()` and is wired with a timezone-aware clock from the composition root is real configurability.
-- **No, every production caller uses the default; only the test passes something else** → escape hatch. The parameter exists *solely* so the test can override it. That's a test-only knob dressed up as a constructor param. Escalate to ask whether the production code should be re-shaped instead - use the test framework's virtual time (`runTest` + `advanceTimeBy`), expose a `Scheduler` the production composition actually wires, or inject a real abstraction with a meaningful production value.
+- **Yes, real production callers pass non-default values** -> injection seam. A `Clock` parameter that defaults to `Clock.systemUTC()` and is wired with a timezone-aware clock from the composition root is real configurability.
+- **No, every production caller uses the default; only the test passes something else** -> escape hatch. The parameter exists *solely* so the test can override it. That's a test-only knob dressed up as a constructor param. Escalate to ask whether the production code should be re-shaped instead - use the test framework's virtual time (`runTest` + `advanceTimeBy`), expose a `Scheduler` the production composition actually wires, or inject a real abstraction with a meaningful production value.
 
 When in doubt - escalate.
 
@@ -94,7 +94,7 @@ One line back from the user resolves it. The point is awareness *before* the sho
 
 ## What this is NOT
 
-**Not pushback.** Pushback is Claude → user, fired on the *user's* requests. This is Claude → self, fired on the *agent's* drafts. If the user asks for something that looks like a shortcut, that's pushback. If you're about to commit something on your own initiative that looks like a shortcut, that's this skill.
+**Not pushback.** Pushback is Claude -> user, fired on the *user's* requests. This is Claude -> self, fired on the *agent's* drafts. If the user asks for something that looks like a shortcut, that's pushback. If you're about to commit something on your own initiative that looks like a shortcut, that's this skill.
 
 **Not smoke-test.** Smoke-test asks "does the change work?" This skill asks "is the change shaped right?" A smoke-pass on a shortcut-shaped solution is the exact failure mode this skill prevents - the test passes, the integration is broken.
 
@@ -109,7 +109,7 @@ Before any "phase done" or commit, silently answer:
 - Does the diff contain a pattern from the shapes above, or something rhyming?
 - Would I defend the shape of this change to a senior engineer without "just for the test" or "this machine happens to have"?
 - If a parameter or knob is new, does any production call site pass a non-default value? (If every production caller uses the default and only the test overrides it, it's a test-only knob - escalate.)
-- If I added a dependency, did the brief ask for it? (A library being the obvious or standard tool for the job is *not* the brief asking for it — a new third-party dependency is the orchestrator's call.)
+- If I added a dependency, did the brief ask for it? (A library being the obvious or standard tool for the job is *not* the brief asking for it - a new third-party dependency is the orchestrator's call.)
 - If something is suppressing a failure (`|| true`, empty `catch`, `[ExcludeFromCodeCoverage]`), is the suppression itself the thing I should escalate?
 - If the answer I'm about to ship is empty / zero / no-op (`return []`, `return None`, empty body): does the test pass *because the work was done*, or *because there's nothing for the assertions to fail against*? If the latter, the work isn't done - escalate the missing wiring.
 

@@ -36,7 +36,7 @@ def check_indicator(seed_dir: Path, indicator: dict):
             relative = str(path.relative_to(seed_dir)).replace("\\", "/")
             if fnmatch.fnmatch(relative, glob_pat):
                 return None
-        return ("MATCH", "(no file matches — trivially true pre-edit)")
+        return ("MATCH", "(no file matches - trivially true pre-edit)")
 
     if kind in ("all_of", "any_of"):
         # Recurse; report a MATCH only if the composite as a whole would
