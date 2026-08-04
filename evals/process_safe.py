@@ -1,3 +1,8 @@
+# Vendored from an internal process_safe package.
+# source SHA: 32a52ba6d52158f3b39bebdfbd4df0282aff226a (2026-06-09)
+# Do not hand-edit below this point except to re-sync with a newer source SHA -
+# update this header when you do.
+
 """Subprocess helpers that sidestep the bpo-31935 capture hang.
 
 ``subprocess.run(capture_output=True, timeout=...)`` can wedge *forever* on
