@@ -2,6 +2,8 @@
 
 A Claude Code skill that teaches agents to recognize hack-shaped solutions in their own draft and escalate `BLOCKED` to the orchestrator instead of shipping the shortcut. Agent → self companion to [`pushback`](https://github.com/mtschoen/skills-pushback) (which is Claude → user).
 
+Part of the completion suite - maintaining-full-coverage, smoke-test, docs-update, escalate-over-shortcut, and wrap are designed to be installed together and reference each other directly. Each still works standalone; treat cross-references to missing suite members as optional.
+
 ## What it does
 
 `escalate-over-shortcut` fires when the agent's draft contains one of four shape clusters: **suppressing a problem** (silent fallbacks, coverage exclusions on stub/throw code, lowered thresholds), **pulling state from somewhere illegitimate** (binaries from an unrelated app's install dir, prod wiring under `tests/`, cross-worktree file copies), **configurability that only tests use** (hard-coded values keyed to one platform, test-only knobs), or **unexplained mid-task drift** (mid-phase dependencies, TODO/FIXME, unexplained constants).
@@ -26,7 +28,7 @@ Via the [skills-dev](https://github.com/mtschoen/skills-dev) installer:
 install-skills.bat -y escalate-over-shortcut
 ```
 
-Installs to `~/.claude/skills/escalate-over-shortcut/`. The installer copies `SKILL.md` + `references/` and excludes development-only files (this `README.md`, `HANDOFF.md`, `LICENSE`, `evals/`, `workspace/`). The agent loads `SKILL.md` from the install location; this README is for human readers browsing the repo.
+Installs to `~/.claude/skills/escalate-over-shortcut/`. The installer copies `SKILL.md` + `references/` and excludes development-only files (this `README.md`, `LICENSE`, `evals/` - including the `HANDOFF-iteration-*.md` design briefs - and `workspace/`). The agent loads `SKILL.md` from the install location; this README is for human readers browsing the repo.
 
 ## Layout
 
@@ -34,11 +36,12 @@ Installs to `~/.claude/skills/escalate-over-shortcut/`. The installer copies `SK
 escalate-over-shortcut/
   SKILL.md                          shape clusters, gut check, BLOCKED template, self-check
   README.md                         this file
-  HANDOFF.md                        original design brief (kept for posterity)
   references/
     red-flag-patterns.md            full 10-pattern catalogue with WindowStream excerpts
   evals/                            pushback-style eval harness (dev-only)
-    evals.json                      10 scenarios (8 should-escalate + 2 should-NOT)
+    HANDOFF-iteration-5.md          iteration 5 design brief (kept for posterity)
+    HANDOFF-iteration-6.md          iteration 6 design brief (current)
+    evals.json                      12 scenarios (9 active should-escalate + 2 should-NOT + 1 retired)
     run.py                          driver: claude -p × (config × runs × evals)
     grade.py                        grader subagent → per-assertion + universal check
   workspace/                        eval scratch (gitignored)
@@ -52,7 +55,7 @@ escalate-over-shortcut/
 
 ## Eval design
 
-The 10 scenarios pair each of the four shape clusters with concrete drafts the agent might write, plus two controls (clean diff, legitimate clock-injection seam) to measure false-positive resistance — the "paranoid agent" failure mode. Each run grades a single agent turn for whether it correctly emits `BLOCKED` or correctly ships. The harness is cloned from [`pushback/evals/`](https://github.com/mtschoen/skills-pushback) with the prompt template adapted for "agent reviewing its own draft" rather than "agent reviewing the user's request."
+The 9 active should-escalate scenarios pair each of the four shape clusters with concrete drafts the agent might write, plus two controls (clean diff, legitimate clock-injection seam) to measure false-positive resistance - the "paranoid agent" failure mode. One additional scenario (`hot-path-extra-call`) is retired but kept in `evals.json` for history. Each run grades a single agent turn for whether it correctly emits `BLOCKED` or correctly ships. The harness is cloned from [`pushback/evals/`](https://github.com/mtschoen/skills-pushback) with the prompt template adapted for "agent reviewing its own draft" rather than "agent reviewing the user's request."
 
 To run locally:
 

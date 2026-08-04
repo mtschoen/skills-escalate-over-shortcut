@@ -20,11 +20,10 @@ Headline, Sonnet 5 (`claude-sonnet-5`), n=6 per config per new scenario, ~$16 to
 `evals/run.py` and `evals/grade.py` spawned nested `claude -p` processes via
 `subprocess.run(capture_output=True, timeout=...)`, exposed to the Windows
 reader-thread wedge (bpo-31935: a grandchild inheriting the stdout pipe can
-hang the parent's timeout forever). Vendored
-`schoen-lab/packages/process_safe/src/process_safe/process.py` (source SHA
-`32a52ba6d52158f3b39bebdfbd4df0282aff226a`) into `evals/process_safe.py` and
-migrated both call sites to `run_captured`, which reads pipes in an
-abandonable daemon thread instead.
+hang the parent's timeout forever). Vendored an internal `process_safe`
+package (source SHA `32a52ba6d52158f3b39bebdfbd4df0282aff226a`) into
+`evals/process_safe.py` and migrated both call sites to `run_captured`,
+which reads pipes in an abandonable daemon thread instead.
 
 Two adaptations beyond a literal call-site swap, both load-bearing:
 
@@ -162,9 +161,9 @@ signal about where the model already generalizes well.
   saturated on Sonnet 5.
 - Re-run `audit_rubric_seed_overmatch.py` after any future rubric edit
   (unchanged practice from iter-5 Goal 4).
-- `evals/process_safe.py` is vendored, not a dependency — if
-  `schoen-lab/packages/process_safe` changes upstream, re-sync by hand and
-  bump the source-SHA header comment.
+- `evals/process_safe.py` is vendored, not a dependency - if the
+  upstream `process_safe` package changes, re-sync by hand and bump the
+  source-SHA header comment.
 - `--only-eval` now accepts multiple ids (`--only-eval 10 11`) in both
   `run.py` and `grade.py`.
 
