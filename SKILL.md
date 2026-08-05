@@ -1,6 +1,6 @@
 ---
 name: escalate-over-shortcut
-description: "Use when about to commit a draft solution that suppresses a problem (silent fallbacks like || true, [ExcludeFromCodeCoverage] on throw/stub code, lowered thresholds), pulls state from somewhere illegitimate (binaries from an unrelated app's install dir, prod wiring under tests/, cross-worktree file copies), adds configurability with no production caller (hard-coded values keyed to one platform, test-only knobs), ships a placeholder/no-op (return [], empty handler) as the answer, or leaves rationale-free drift (mid-phase dependencies, TODO/FIXME, unexplained changes). Claude-to-self companion to pushback; fires on the agent's own draft, not on the user's request. Most invocations end \"no, not a shortcut, ship\" - that's healthy; the value is the check."
+description: "Use when about to commit a draft solution that suppresses a problem (silent fallbacks like || true, [ExcludeFromCodeCoverage] on throw/stub code, lowered thresholds), pulls state from somewhere illegitimate (binaries from an unrelated app's install dir, prod wiring under tests/, cross-worktree file copies), adds configurability with no production caller (hard-coded values keyed to one platform, test-only knobs), ships a placeholder/no-op (return [], empty handler) as the answer, or leaves rationale-free drift (mid-phase dependencies, TODO/FIXME, unexplained changes). Agent-to-self companion to pushback; fires on the agent's own draft, not on the user's request. Most invocations end \"no, not a shortcut, ship\" - that's healthy; the value is the check."
 ---
 
 # Escalate Over Shortcut
@@ -13,7 +13,7 @@ Agents optimize locally. The work item said "make this phase pass"; the phase pa
 
 **The failure mode this skill must NOT create:** a paranoid agent that flags every careful piece of design as a shortcut. The bar is *concrete*: the draft contains a pattern the agent would be embarrassed to defend in PR review.
 
-This is **agent -> self** review. Companion to `pushback`, which is Claude -> user.
+This is **agent -> self** review. Companion to `pushback`, which is agent -> user.
 
 ## When this fires
 
@@ -94,7 +94,7 @@ One line back from the user resolves it. The point is awareness *before* the sho
 
 ## What this is NOT
 
-**Not pushback.** Pushback is Claude -> user, fired on the *user's* requests. This is Claude -> self, fired on the *agent's* drafts. If the user asks for something that looks like a shortcut, that's pushback. If you're about to commit something on your own initiative that looks like a shortcut, that's this skill.
+**Not pushback.** Pushback is agent -> user, fired on the *user's* requests. This is agent -> self, fired on the *agent's* drafts. If the user asks for something that looks like a shortcut, that's pushback. If you're about to commit something on your own initiative that looks like a shortcut, that's this skill.
 
 **Not smoke-test.** Smoke-test asks "does the change work?" This skill asks "is the change shaped right?" A smoke-pass on a shortcut-shaped solution is the exact failure mode this skill prevents - the test passes, the integration is broken.
 
