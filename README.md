@@ -1,6 +1,6 @@
 # escalate-over-shortcut
 
-An agent skill that teaches agents to recognize hack-shaped solutions in their own draft and escalate `BLOCKED` to the orchestrator instead of shipping the shortcut. Agent -> self companion to [`pushback`](https://github.com/mtschoen/skills-pushback) (which is agent -> user).
+A skill that teaches agents to recognize hack-shaped solutions in their own draft and escalate `BLOCKED` to the orchestrator instead of shipping the shortcut. Agent -> self companion to [`pushback`](https://github.com/mtschoen/skills-pushback) (which is agent -> user).
 
 This skill is part of the completion suite: `maintaining-full-coverage`, `smoke-test`, `docs-update`, `escalate-over-shortcut`, and `wrap`. Suite skills install separately (each lives in its own repo) but are designed to be installed together, and they reference each other directly. Each works standalone; treat cross-references to missing suite members as optional.
 
