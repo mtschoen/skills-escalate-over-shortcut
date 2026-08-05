@@ -28,7 +28,7 @@ Via the [skills-dev](https://github.com/mtschoen/skills-dev) installer:
 install-skills.bat -y escalate-over-shortcut
 ```
 
-Installs to `~/.agents/skills/escalate-over-shortcut/` (or wherever your agent harness reads skills - e.g. `~/.claude/skills/` for Claude Code). The installer copies `SKILL.md` + `references/` and excludes development-only files: this `README.md`, `LICENSE`, `evals/` (including the `HANDOFF-iteration-*.md` design briefs), and `workspace/`. The agent loads `SKILL.md` from the install location; this README is for human readers browsing the repo.
+Installs to `~/.agents/skills/escalate-over-shortcut/` (or wherever your agent harness reads skills from). The installer copies `SKILL.md` + `references/` and excludes development-only files: this `README.md`, `LICENSE`, `evals/` (including the `HANDOFF-iteration-*.md` design briefs), and `workspace/`. The agent loads `SKILL.md` from the install location; this README is for human readers browsing the repo.
 
 ## Layout
 
