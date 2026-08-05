@@ -1,6 +1,6 @@
 # escalate-over-shortcut
 
-A Claude Code skill that teaches agents to recognize hack-shaped solutions in their own draft and escalate `BLOCKED` to the orchestrator instead of shipping the shortcut. Agent -> self companion to [`pushback`](https://github.com/mtschoen/skills-pushback) (which is Claude -> user).
+A skill that teaches agents to recognize hack-shaped solutions in their own draft and escalate `BLOCKED` to the orchestrator instead of shipping the shortcut. Agent -> self companion to [`pushback`](https://github.com/mtschoen/skills-pushback) (which is agent -> user).
 
 This skill is part of the completion suite: `maintaining-full-coverage`, `smoke-test`, `docs-update`, `escalate-over-shortcut`, and `wrap`. Suite skills install separately (each lives in its own repo) but are designed to be installed together, and they reference each other directly. Each works standalone; treat cross-references to missing suite members as optional.
 
@@ -28,7 +28,7 @@ Via the [skills-dev](https://github.com/mtschoen/skills-dev) installer:
 install-skills.bat -y escalate-over-shortcut
 ```
 
-Installs to `~/.claude/skills/escalate-over-shortcut/`. The installer copies `SKILL.md` + `references/` and excludes development-only files: this `README.md`, `LICENSE`, `evals/` (including the `HANDOFF-iteration-*.md` design briefs), and `workspace/`. The agent loads `SKILL.md` from the install location; this README is for human readers browsing the repo.
+Installs to `~/.agents/skills/escalate-over-shortcut/` (or wherever your agent harness reads skills from). The installer copies `SKILL.md` + `references/` and excludes development-only files: this `README.md`, `LICENSE`, `evals/` (including the `HANDOFF-iteration-*.md` design briefs), and `workspace/`. The agent loads `SKILL.md` from the install location; this README is for human readers browsing the repo.
 
 ## Layout
 
@@ -49,7 +49,7 @@ escalate-over-shortcut/
 
 ## Related skills
 
-- [`pushback`](https://github.com/mtschoen/skills-pushback) (sibling axis). Pushback is Claude -> user (challenge incoming requests); this skill is Claude -> self (challenge outgoing drafts).
+- [`pushback`](https://github.com/mtschoen/skills-pushback) (sibling axis). Pushback is agent -> user (challenge incoming requests); this skill is agent -> self (challenge outgoing drafts).
 - [`smoke-test`](https://github.com/mtschoen/skills-smoke-test) (orthogonal layer). Smoke-test asks "does the change work?"; this skill asks "is the change shaped right?" A smoke-pass on a shortcut-shaped solution is the exact failure this skill prevents.
 - [`maintaining-full-coverage`](https://github.com/mtschoen/skills-maintaining-full-coverage) (adjacent). This skill flags `[ExcludeFromCodeCoverage]` on stub/throw code as a smell; the coverage skill enforces the gate that the exclusion was trying to dodge.
 
