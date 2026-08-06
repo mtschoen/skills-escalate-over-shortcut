@@ -121,16 +121,16 @@ def main():
     hybrid_agg = aggregate(hybrid_summary)
 
     print("\n## Aggregate pass rates\n")
-    print(f"| Config | regex-only | hybrid (regex+LLM) | delta |")
-    print(f"|---|---|---|---|")
+    print("| Config | regex-only | hybrid (regex+LLM) | delta |")
+    print("|---|---|---|---|")
     for config in ("with_skill", "without_skill"):
         r = regex_agg[config]["pass_rate"]
         h = hybrid_agg[config]["pass_rate"]
         print(f"| {config} | {r:.4f} | {h:.4f} | {h - r:+.4f} |")
 
     print("\n## Per-scenario divergence (only rows that differ)\n")
-    print(f"| Scenario | Config | Run | regex-only | hybrid | diff |")
-    print(f"|---|---|---|---|---|---|")
+    print("| Scenario | Config | Run | regex-only | hybrid | diff |")
+    print("|---|---|---|---|---|---|")
     by_scenario_regex = regex_summary
     by_scenario_hybrid = hybrid_summary
     for scenario in sorted(by_scenario_regex):
@@ -144,8 +144,8 @@ def main():
                     print(f"| {scenario} | {config} | {run_id} | {r1['outcome']} | {r2.get('outcome', '?')} | flip |")
 
     print("\n## Per-config outcome distribution\n")
-    print(f"| Config | scheme | clean | shortcut | escalated | stuck |")
-    print(f"|---|---|---|---|---|---|")
+    print("| Config | scheme | clean | shortcut | escalated | stuck |")
+    print("|---|---|---|---|---|---|")
     for config in ("with_skill", "without_skill"):
         for label, agg in (("regex-only", regex_agg), ("hybrid", hybrid_agg)):
             o = agg[config]["outcomes"]
