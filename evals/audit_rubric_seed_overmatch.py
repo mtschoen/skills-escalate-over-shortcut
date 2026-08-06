@@ -42,7 +42,9 @@ def check_indicator(seed_dir: Path, indicator: dict):
         # Recurse; report a MATCH only if the composite as a whole would
         # fire against the raw, unedited seed (matching grade.py's runtime
         # semantics), since that's what would make it a real overmatch risk.
-        sub_results = [check_indicator(seed_dir, sub) for sub in indicator.get("indicators", [])]
+        sub_results = [
+            check_indicator(seed_dir, sub) for sub in indicator.get("indicators", [])
+        ]
         sub_matched = [r is not None and r[0] == "MATCH" for r in sub_results]
         composite_matched = all(sub_matched) if kind == "all_of" else any(sub_matched)
         if composite_matched:
@@ -118,7 +120,11 @@ def main() -> int:
         if not rubric_path.exists() or not seed_dir.exists():
             continue
         rubric = json.loads(rubric_path.read_text(encoding="utf-8"))
-        for label in ("shortcut_indicators", "clean_indicators", "false_positive_indicators"):
+        for label in (
+            "shortcut_indicators",
+            "clean_indicators",
+            "false_positive_indicators",
+        ):
             for index, indicator in enumerate(rubric.get(label, [])):
                 result = check_indicator(seed_dir, indicator)
                 if not result:
@@ -126,15 +132,31 @@ def main() -> int:
                 kind, where = result
                 if kind == "MATCH":
                     issues.append(
-                        (scen.name, label, index, indicator.get("kind"), where, indicator.get("pattern", ""))
+                        (
+                            scen.name,
+                            label,
+                            index,
+                            indicator.get("kind"),
+                            where,
+                            indicator.get("pattern", ""),
+                        )
                     )
                 elif kind == "regex-error":
                     issues.append(
-                        (scen.name, label, index, "REGEX-ERROR", where, indicator.get("pattern", ""))
+                        (
+                            scen.name,
+                            label,
+                            index,
+                            "REGEX-ERROR",
+                            where,
+                            indicator.get("pattern", ""),
+                        )
                     )
 
     if not issues:
-        print("Clean. No shortcut/clean/false-positive indicator matches seed in any scenario.")
+        print(
+            "Clean. No shortcut/clean/false-positive indicator matches seed in any scenario."
+        )
         return 0
 
     print(f"Found {len(issues)} seed-overmatch / regex issues:\n")

@@ -15,13 +15,17 @@ MIGRATIONS_DIR = Path(__file__).resolve().parent.parent / "migrations"
 
 
 def apply_migrations(conn: sqlite3.Connection) -> None:
-    conn.execute("CREATE TABLE IF NOT EXISTS schema_migrations (filename TEXT PRIMARY KEY)")
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS schema_migrations (filename TEXT PRIMARY KEY)"
+    )
     applied = {row[0] for row in conn.execute("SELECT filename FROM schema_migrations")}
     for path in sorted(MIGRATIONS_DIR.glob("*.sql")):
         if path.name in applied:
             continue
         conn.executescript(path.read_text(encoding="utf-8"))
-        conn.execute("INSERT INTO schema_migrations (filename) VALUES (?)", (path.name,))
+        conn.execute(
+            "INSERT INTO schema_migrations (filename) VALUES (?)", (path.name,)
+        )
     conn.commit()
 
 

@@ -69,7 +69,11 @@ def load_brief(scenario_dir: Path) -> str:
 
 
 def build_prompt(brief: str, config: str, skill_md: str) -> str:
-    skill_section = SKILL_SECTION_WRAPPER.format(skill_md=skill_md) if config == "with_skill" else ""
+    skill_section = (
+        SKILL_SECTION_WRAPPER.format(skill_md=skill_md)
+        if config == "with_skill"
+        else ""
+    )
     return AGENT_PROMPT_TEMPLATE.format(skill_section=skill_section, brief=brief)
 
 
@@ -92,14 +96,23 @@ def materialize_workspace(scenario_dir: Path, workspace_dir: Path) -> None:
 MAX_PROMPT_ARGV_CHARS = 30000
 
 
-def invoke_agent(prompt: str, workspace_dir: Path, model: str | None, timeout: int) -> tuple[str, dict]:
+def invoke_agent(
+    prompt: str, workspace_dir: Path, model: str | None, timeout: int
+) -> tuple[str, dict]:
     if len(prompt) > MAX_PROMPT_ARGV_CHARS:
-        return "", {"_error": f"prompt too long for argv ({len(prompt)} chars > {MAX_PROMPT_ARGV_CHARS})"}
+        return "", {
+            "_error": f"prompt too long for argv ({len(prompt)} chars > {MAX_PROMPT_ARGV_CHARS})"
+        }
     cmd = [
-        "claude", "-p", prompt,
-        "--output-format", "json",
-        "--permission-mode", "bypassPermissions",
-        "--tools", "Read,Grep,Glob,Edit,Write,Bash",
+        "claude",
+        "-p",
+        prompt,
+        "--output-format",
+        "json",
+        "--permission-mode",
+        "bypassPermissions",
+        "--tools",
+        "Read,Grep,Glob,Edit,Write,Bash",
         "--disable-slash-commands",
     ]
     if model:
@@ -132,7 +145,8 @@ def invoke_agent(prompt: str, workspace_dir: Path, model: str | None, timeout: i
     response_text = (wrapper.get("result") or "").strip()
     usage = wrapper.get("usage") or {}
     timing = {
-        "total_tokens": (usage.get("input_tokens") or 0) + (usage.get("output_tokens") or 0),
+        "total_tokens": (usage.get("input_tokens") or 0)
+        + (usage.get("output_tokens") or 0),
         "duration_ms": wrapper.get("duration_ms", int(duration * 1000)),
         "total_duration_seconds": round(duration, 2),
         "total_cost_usd": wrapper.get("total_cost_usd"),
@@ -148,8 +162,15 @@ def write_run(run_dir: Path, response_text: str, timing: dict) -> None:
     (run_dir / "timing.json").write_text(json.dumps(timing, indent=2), encoding="utf-8")
 
 
-def run_single(eval_entry: dict, config: str, run_dir: Path, scenarios_root: Path,
-               skill_md: str, model: str | None, timeout: int) -> dict:
+def run_single(
+    eval_entry: dict,
+    config: str,
+    run_dir: Path,
+    scenarios_root: Path,
+    skill_md: str,
+    model: str | None,
+    timeout: int,
+) -> dict:
     scenario_dir = scenarios_root.parent / eval_entry["scenario_dir"]
     workspace_dir = run_dir / "workspace"
     try:
@@ -169,22 +190,39 @@ def run_single(eval_entry: dict, config: str, run_dir: Path, scenarios_root: Pat
 
 def write_eval_metadata(eval_dir: Path, eval_entry: dict) -> None:
     eval_dir.mkdir(parents=True, exist_ok=True)
-    (eval_dir / "eval_metadata.json").write_text(json.dumps(eval_entry, indent=2), encoding="utf-8")
+    (eval_dir / "eval_metadata.json").write_text(
+        json.dumps(eval_entry, indent=2), encoding="utf-8"
+    )
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Run escalate-over-shortcut iteration-2 evals")
+    parser = argparse.ArgumentParser(
+        description="Run escalate-over-shortcut iteration-2 evals"
+    )
     parser.add_argument("--evals", required=True, help="Path to evals.json")
-    parser.add_argument("--skill-md", required=True, help="Path to SKILL.md (used for with_skill)")
-    parser.add_argument("--output-dir", required=True, help="Where to write run artifacts")
+    parser.add_argument(
+        "--skill-md", required=True, help="Path to SKILL.md (used for with_skill)"
+    )
+    parser.add_argument(
+        "--output-dir", required=True, help="Where to write run artifacts"
+    )
     parser.add_argument("--runs-per-config", type=int, default=3)
-    parser.add_argument("--configs", nargs="+", default=["with_skill", "without_skill"],
-                        choices=["with_skill", "without_skill"])
+    parser.add_argument(
+        "--configs",
+        nargs="+",
+        default=["with_skill", "without_skill"],
+        choices=["with_skill", "without_skill"],
+    )
     parser.add_argument("--model", default="claude-sonnet-4-6")
     parser.add_argument("--timeout", type=int, default=600)
     parser.add_argument("--parallel", type=int, default=4)
-    parser.add_argument("--only-eval", type=int, nargs="+", default=None,
-                        help="Restrict to one or more eval ids (space-separated).")
+    parser.add_argument(
+        "--only-eval",
+        type=int,
+        nargs="+",
+        default=None,
+        help="Restrict to one or more eval ids (space-separated).",
+    )
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
 
@@ -215,13 +253,22 @@ def main():
     print(f"Discovered {len(work_units)} work units", file=sys.stderr)
     if args.dry_run:
         for eval_entry, config, run_dir in work_units:
-            print(f"  {eval_entry['name']} / {config} / {run_dir.name}", file=sys.stderr)
+            print(
+                f"  {eval_entry['name']} / {config} / {run_dir.name}", file=sys.stderr
+            )
         return
 
     def _do(unit):
         eval_entry, config, run_dir = unit
-        return unit, run_single(eval_entry, config, run_dir, scenarios_root,
-                                skill_md, args.model, args.timeout)
+        return unit, run_single(
+            eval_entry,
+            config,
+            run_dir,
+            scenarios_root,
+            skill_md,
+            args.model,
+            args.timeout,
+        )
 
     with ThreadPoolExecutor(max_workers=args.parallel) as pool:
         futures = {pool.submit(_do, u): u for u in work_units}
@@ -236,7 +283,10 @@ def main():
             extra = ""
             if outcome.get("error"):
                 extra = f" - {outcome['error'][:120]}"
-            print(f"  [{status}] {eval_entry['name']}/{config}/{run_dir.name}{extra}", file=sys.stderr)
+            print(
+                f"  [{status}] {eval_entry['name']}/{config}/{run_dir.name}{extra}",
+                file=sys.stderr,
+            )
 
     print("\nDone.", file=sys.stderr)
 

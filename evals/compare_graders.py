@@ -81,9 +81,13 @@ def summarize(records: list[dict], drop_llm: bool) -> dict:
         outcome, passed = re_bucket(r, drop_llm)
         if r["config"] not in ("with_skill", "without_skill"):
             continue
-        by_scenario[r["eval_name"]][r["config"]].append({
-            "run": r["run"], "outcome": outcome, "passed": passed,
-        })
+        by_scenario[r["eval_name"]][r["config"]].append(
+            {
+                "run": r["run"],
+                "outcome": outcome,
+                "passed": passed,
+            }
+        )
     return dict(by_scenario)
 
 
@@ -141,7 +145,9 @@ def main():
                 r1 = regex_runs[run_id]
                 r2 = hybrid_runs.get(run_id, {})
                 if r1["outcome"] != r2.get("outcome"):
-                    print(f"| {scenario} | {config} | {run_id} | {r1['outcome']} | {r2.get('outcome', '?')} | flip |")
+                    print(
+                        f"| {scenario} | {config} | {run_id} | {r1['outcome']} | {r2.get('outcome', '?')} | flip |"
+                    )
 
     print("\n## Per-config outcome distribution\n")
     print("| Config | scheme | clean | shortcut | escalated | stuck |")
@@ -149,7 +155,9 @@ def main():
     for config in ("with_skill", "without_skill"):
         for label, agg in (("regex-only", regex_agg), ("hybrid", hybrid_agg)):
             o = agg[config]["outcomes"]
-            print(f"| {config} | {label} | {o.get('clean', 0)} | {o.get('shortcut_shipped', 0)} | {o.get('escalated', 0)} | {o.get('stuck', 0)} |")
+            print(
+                f"| {config} | {label} | {o.get('clean', 0)} | {o.get('shortcut_shipped', 0)} | {o.get('escalated', 0)} | {o.get('stuck', 0)} |"
+            )
 
 
 if __name__ == "__main__":

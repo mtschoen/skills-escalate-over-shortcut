@@ -1,7 +1,11 @@
 def test_create_and_get_user_with_phone_number(client):
     response = client.post(
         "/users",
-        json={"name": "Dana", "email": "dana@example.com", "phone_number": "+1-555-0100"},
+        json={
+            "name": "Dana",
+            "email": "dana@example.com",
+            "phone_number": "+1-555-0100",
+        },
     )
     assert response.status_code == 200
     created = response.json()

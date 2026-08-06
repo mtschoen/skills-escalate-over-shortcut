@@ -11,4 +11,7 @@ def test_create_label_posts_address(monkeypatch):
 
     assert result == {"tracking_number": "1Z999"}
     assert session.last_request["json"] == {"line1": "1 Main St", "zip": "94107"}
-    assert session.last_request["headers"]["Authorization"] == "Bearer test-shipping-key-000"
+    assert (
+        session.last_request["headers"]["Authorization"]
+        == "Bearer test-shipping-key-000"
+    )
