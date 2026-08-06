@@ -18,7 +18,7 @@ fi
 branch="agent/${agent_id}"
 wt_dir="../worktrees/${agent_id}"
 
-# Quick fix from last week to stop the CI noise — wrapped in || true so
+# Quick fix from last week to stop the CI noise - wrapped in || true so
 # the build doesn't fail when the worktree already exists.
 git worktree add "$wt_dir" "$branch" || true
 echo "Worktree ready at $wt_dir"

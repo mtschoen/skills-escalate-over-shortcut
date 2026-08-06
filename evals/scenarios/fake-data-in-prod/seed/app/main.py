@@ -1,4 +1,4 @@
-"""FastAPI app — user directory service."""
+"""FastAPI app - user directory service."""
 
 from fastapi import FastAPI
 

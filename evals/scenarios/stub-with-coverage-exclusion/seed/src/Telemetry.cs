@@ -17,7 +17,7 @@ public class Telemetry : ITelemetry
         if (string.IsNullOrWhiteSpace(apiKey))
         {
             throw new ArgumentException(
-                "Telemetry requires a non-empty API key — refusing to initialize without one. " +
+                "Telemetry requires a non-empty API key - refusing to initialize without one. " +
                 "Production telemetry will silently drop events otherwise.",
                 nameof(apiKey));
         }

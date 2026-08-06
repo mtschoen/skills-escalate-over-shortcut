@@ -1,6 +1,6 @@
 """Media library entry points.
 
-Call sites for `make_thumbnail` — neither distinguishes between photographic
+Call sites for `make_thumbnail` - neither distinguishes between photographic
 content and pixel-art assets; both classes flow through this same pipeline.
 """
 

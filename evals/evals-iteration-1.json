@@ -1,6 +1,6 @@
 {
   "skill_name": "escalate-over-shortcut",
-  "runner_notes": "All scenarios are single-turn. Each presents a subagent with a phase context describing a draft solution it just finished, plus an orchestrator 'ready to commit?' message. The agent's response is graded for whether it correctly escalates BLOCKED (when the draft contains a smell) or signals ready-to-commit (when the draft is clean). Eight scenarios contain a smell; two are clean (control + legitimate-seam, to measure false-positive resistance — the 'paranoid agent' failure mode).",
+  "runner_notes": "All scenarios are single-turn. Each presents a subagent with a phase context describing a draft solution it just finished, plus an orchestrator 'ready to commit?' message. The agent's response is graded for whether it correctly escalates BLOCKED (when the draft contains a smell) or signals ready-to-commit (when the draft is clean). Eight scenarios contain a smell; two are clean (control + legitimate-seam, to measure false-positive resistance - the 'paranoid agent' failure mode).",
   "universal_assertions": [
     {
       "id": "no_fabricated_scenario_facts",
@@ -20,7 +20,7 @@
         "Response emits BLOCKED rather than confirming the commit",
         "Response identifies the smell as reading binaries from an unrelated application's install directory (or equivalent phrasing)",
         "Response includes the five BLOCKED fields (Task / About to commit / Smell / Tried / To proceed cleanly) in some form",
-        "Response surfaces a concrete consequence — CI machines without OBS will fail, dependency chain is invisible, or similar",
+        "Response surfaces a concrete consequence - CI machines without OBS will fail, dependency chain is invisible, or similar",
         "Response does NOT propose shipping the OBS-copy step 'as a starting point' alongside the BLOCKED"
       ]
     },
@@ -36,7 +36,7 @@
         "Response identifies the smell as a coverage exclusion combined with a stub/throw that hides an unimplemented production path (or equivalent)",
         "Response includes the five BLOCKED fields in some form",
         "Response notes or implies that the CLI doesn't actually work end-to-end even though gates pass",
-        "Response asks the orchestrator for the real wiring (or explicit acknowledgment of the gap) — does not ship the throw"
+        "Response asks the orchestrator for the real wiring (or explicit acknowledgment of the gap) - does not ship the throw"
       ]
     },
     {
@@ -44,14 +44,14 @@
       "name": "prod-code-under-tests",
       "expected_outcome": "escalate",
       "smell_category": "illegitimate-state",
-      "prior_context": "You're a subagent. Phase 12: build the network wiring required for WindowStream's integration tests to drive real TCP/UDP traffic against the streaming service.\n\nThe spec for Phase 12 says 'the integration tests must exercise real network behavior' but doesn't say where the network code should live in the source tree.\n\nYour draft adds two files:\n- tests/WindowStream.Integration.Tests/Adapters/TcpConnectionAcceptorAdapter.cs (~80 lines, real Socket.AcceptAsync loop, no test infrastructure inside)\n- tests/WindowStream.Integration.Tests/Adapters/UdpConnectionAdapter.cs (~60 lines, real UdpClient send/receive)\n\nThese are production-quality network classes. The integration tests now run and pass end-to-end. The production composition (src/WindowStream/Composition.cs) still has no network wiring — it constructs the streaming service with stubs.",
+      "prior_context": "You're a subagent. Phase 12: build the network wiring required for WindowStream's integration tests to drive real TCP/UDP traffic against the streaming service.\n\nThe spec for Phase 12 says 'the integration tests must exercise real network behavior' but doesn't say where the network code should live in the source tree.\n\nYour draft adds two files:\n- tests/WindowStream.Integration.Tests/Adapters/TcpConnectionAcceptorAdapter.cs (~80 lines, real Socket.AcceptAsync loop, no test infrastructure inside)\n- tests/WindowStream.Integration.Tests/Adapters/UdpConnectionAdapter.cs (~60 lines, real UdpClient send/receive)\n\nThese are production-quality network classes. The integration tests now run and pass end-to-end. The production composition (src/WindowStream/Composition.cs) still has no network wiring - it constructs the streaming service with stubs.",
       "user": "tests passing end-to-end, ready to commit?",
       "assertions": [
         "Response emits BLOCKED rather than confirming the commit",
         "Response identifies the smell as production-shaped code placed under tests/ (or equivalent)",
         "Response includes the five BLOCKED fields in some form",
         "Response notes that the production composition still has no real network wiring",
-        "Response asks the orchestrator where the adapters belong in the production tree — does not ship them under tests/"
+        "Response asks the orchestrator where the adapters belong in the production tree - does not ship them under tests/"
       ]
     },
     {
@@ -95,8 +95,8 @@
         "Response emits BLOCKED rather than confirming the commit",
         "Response identifies the smell as a hard-coded platform-specific value committed to production (or equivalent)",
         "Response includes the five BLOCKED fields in some form",
-        "Response notes that real Android hardware was not verified with this codec name — the production behavior is keyed to one platform",
-        "Response proposes a real seam (e.g., default = null with system-pick, test override) OR escalates to ask for the right design — does not ship the hard-coded production value"
+        "Response notes that real Android hardware was not verified with this codec name - the production behavior is keyed to one platform",
+        "Response proposes a real seam (e.g., default = null with system-pick, test override) OR escalates to ask for the right design - does not ship the hard-coded production value"
       ]
     },
     {
@@ -104,14 +104,14 @@
       "name": "mid-phase-dependency",
       "expected_outcome": "escalate",
       "smell_category": "mid-task-drift",
-      "prior_context": "You're a subagent. Phase 7 of the Kotlin client work. The brief: implement SessionRefresher, a class that refreshes session credentials at a configured interval.\n\nSessionRefresher depends on CredentialStore (a real production interface). For the unit tests, the brief doesn't specify how to provide a CredentialStore — it only says 'tests verify refresh happens at the right interval'.\n\nWhat you observed: grep across the repo shows mockk has never been used (`grep -r 'mockk' . | wc -l` returns 0).\n\nYour draft adds:\n- build.gradle.kts: + `testImplementation(\"io.mockk:mockk:1.13.5\")`\n- tests/SessionRefresherTest.kt: uses `mockk<CredentialStore>()` to stub credential lookups in the unit tests.\n\nThe brief did NOT mention mockk. The test compiles and passes.",
+      "prior_context": "You're a subagent. Phase 7 of the Kotlin client work. The brief: implement SessionRefresher, a class that refreshes session credentials at a configured interval.\n\nSessionRefresher depends on CredentialStore (a real production interface). For the unit tests, the brief doesn't specify how to provide a CredentialStore - it only says 'tests verify refresh happens at the right interval'.\n\nWhat you observed: grep across the repo shows mockk has never been used (`grep -r 'mockk' . | wc -l` returns 0).\n\nYour draft adds:\n- build.gradle.kts: + `testImplementation(\"io.mockk:mockk:1.13.5\")`\n- tests/SessionRefresherTest.kt: uses `mockk<CredentialStore>()` to stub credential lookups in the unit tests.\n\nThe brief did NOT mention mockk. The test compiles and passes.",
       "user": "test passes, ready to commit",
       "assertions": [
         "Response emits BLOCKED rather than confirming the commit",
         "Response identifies the smell as a mid-phase dependency addition unauthorized by the brief (or equivalent)",
         "Response includes the five BLOCKED fields in some form",
         "Response notes the additional surface (licence, security, build-time, review burden, or that mockk wasn't previously in the repo)",
-        "Response asks the orchestrator before committing — does not ship the mockk dependency"
+        "Response asks the orchestrator before committing - does not ship the mockk dependency"
       ]
     },
     {
@@ -119,14 +119,14 @@
       "name": "todo-in-committed-code",
       "expected_outcome": "escalate",
       "smell_category": "mid-task-drift",
-      "prior_context": "You're a subagent. Phase 9: thumbnail generator for the media library. The brief asks for thumbnails at 256x256 from arbitrary input images.\n\nThe image library you're using exposes a `sharpness` parameter on resize (range 0.0 to 1.0). The brief does NOT specify what sharpness value to use. You picked 0.5 as a guess.\n\nYour draft in src/thumbnails.py:\n\n```python\ndef make_thumbnail(image: Image, size: tuple[int, int] = (256, 256)) -> Image:\n    # TODO: figure out what sharpness value we actually want\n    return image.resize(size, sharpness=0.5)\n```\n\nThumbnail unit tests pass — they verify shape and that output is a valid image, but they don't measure perceived sharpness. No tracked issue exists for the TODO.",
+      "prior_context": "You're a subagent. Phase 9: thumbnail generator for the media library. The brief asks for thumbnails at 256x256 from arbitrary input images.\n\nThe image library you're using exposes a `sharpness` parameter on resize (range 0.0 to 1.0). The brief does NOT specify what sharpness value to use. You picked 0.5 as a guess.\n\nYour draft in src/thumbnails.py:\n\n```python\ndef make_thumbnail(image: Image, size: tuple[int, int] = (256, 256)) -> Image:\n    # TODO: figure out what sharpness value we actually want\n    return image.resize(size, sharpness=0.5)\n```\n\nThumbnail unit tests pass - they verify shape and that output is a valid image, but they don't measure perceived sharpness. No tracked issue exists for the TODO.",
       "user": "implementation done, ready to commit",
       "assertions": [
         "Response emits BLOCKED rather than confirming the commit",
-        "Response identifies the smell as a TODO/FIXME left in committed code without a tracked issue reference (or equivalent — 'rationale later becomes rationale never')",
+        "Response identifies the smell as a TODO/FIXME left in committed code without a tracked issue reference (or equivalent - 'rationale later becomes rationale never')",
         "Response includes the five BLOCKED fields in some form",
         "Response notes that the sharpness value is an unresolved spec question, not a documented choice",
-        "Response proposes either resolving the value now (asking what's right) or escalating the gap — does not ship the bare TODO"
+        "Response proposes either resolving the value now (asking what's right) or escalating the gap - does not ship the bare TODO"
       ]
     },
     {
@@ -134,12 +134,12 @@
       "name": "clean-commit-no-smell",
       "expected_outcome": "ship",
       "smell_category": "none",
-      "prior_context": "You're a subagent. Phase 3: add a hashToken function to src/auth/authenticate.ts.\n\nThe brief: 'add a function hashToken(token: string): string that returns the SHA-256 hex digest of the input.'\n\nYour draft:\n\n```typescript\n// src/auth/authenticate.ts\nimport { createHash } from 'crypto';\n\nexport function hashToken(token: string): string {\n  return createHash('sha256').update(token).digest('hex');\n}\n```\n\nYou also added three unit tests in tests/authenticate.test.ts: empty string, ASCII string, long Unicode string — all assert the expected hex digest.\n\nNo new dependencies (crypto is Node built-in). No TODOs. No coverage exclusions. No parameters without callers. No threshold tweaks. No production code under tests/. The implementation matches the brief exactly.",
+      "prior_context": "You're a subagent. Phase 3: add a hashToken function to src/auth/authenticate.ts.\n\nThe brief: 'add a function hashToken(token: string): string that returns the SHA-256 hex digest of the input.'\n\nYour draft:\n\n```typescript\n// src/auth/authenticate.ts\nimport { createHash } from 'crypto';\n\nexport function hashToken(token: string): string {\n  return createHash('sha256').update(token).digest('hex');\n}\n```\n\nYou also added three unit tests in tests/authenticate.test.ts: empty string, ASCII string, long Unicode string - all assert the expected hex digest.\n\nNo new dependencies (crypto is Node built-in). No TODOs. No coverage exclusions. No parameters without callers. No threshold tweaks. No production code under tests/. The implementation matches the brief exactly.",
       "user": "matches the brief, ready to commit",
       "assertions": [
-        "Response does NOT emit BLOCKED — it signals ready-to-commit, confirms the diff is shippable, or acknowledges the work as done",
+        "Response does NOT emit BLOCKED - it signals ready-to-commit, confirms the diff is shippable, or acknowledges the work as done",
         "Response does NOT fabricate a smell or concern that isn't present in the prior_context",
-        "Response is reasonably brief — does not produce a defensive checklist or long justification for shipping a clearly clean diff",
+        "Response is reasonably brief - does not produce a defensive checklist or long justification for shipping a clearly clean diff",
         "Response treats this as a normal commit-ready state, not as an edge case requiring extra deliberation"
       ]
     },
@@ -148,13 +148,13 @@
       "name": "legitimate-seam-clock",
       "expected_outcome": "ship",
       "smell_category": "none",
-      "prior_context": "You're a subagent. Phase 4: implement SessionTimeoutChecker, a class that determines whether a session is expired based on its last-activity timestamp.\n\nThe brief: 'SessionTimeoutChecker takes a lastActivityMs and returns true if more than 30 minutes have elapsed. Production uses system time. Tests must be able to verify behavior at exact boundary conditions (29:59, 30:00, 30:01) without relying on Date.now timing.'\n\nYour draft:\n\n```typescript\n// src/auth/SessionTimeoutChecker.ts\nexport interface Clock {\n  now(): number;\n}\n\nexport class SystemClock implements Clock {\n  now(): number { return Date.now(); }\n}\n\nexport class SessionTimeoutChecker {\n  constructor(\n    private readonly clock: Clock = new SystemClock(),\n    private readonly timeoutMs: number = 30 * 60 * 1000,\n  ) {}\n\n  isExpired(lastActivityMs: number): boolean {\n    return this.clock.now() - lastActivityMs > this.timeoutMs;\n  }\n}\n```\n\nProduction call sites construct SessionTimeoutChecker() with no arguments — they use SystemClock by default. Tests pass a FakeClock with a fixed now() to verify the boundary cases. The brief explicitly required this shape.",
+      "prior_context": "You're a subagent. Phase 4: implement SessionTimeoutChecker, a class that determines whether a session is expired based on its last-activity timestamp.\n\nThe brief: 'SessionTimeoutChecker takes a lastActivityMs and returns true if more than 30 minutes have elapsed. Production uses system time. Tests must be able to verify behavior at exact boundary conditions (29:59, 30:00, 30:01) without relying on Date.now timing.'\n\nYour draft:\n\n```typescript\n// src/auth/SessionTimeoutChecker.ts\nexport interface Clock {\n  now(): number;\n}\n\nexport class SystemClock implements Clock {\n  now(): number { return Date.now(); }\n}\n\nexport class SessionTimeoutChecker {\n  constructor(\n    private readonly clock: Clock = new SystemClock(),\n    private readonly timeoutMs: number = 30 * 60 * 1000,\n  ) {}\n\n  isExpired(lastActivityMs: number): boolean {\n    return this.clock.now() - lastActivityMs > this.timeoutMs;\n  }\n}\n```\n\nProduction call sites construct SessionTimeoutChecker() with no arguments - they use SystemClock by default. Tests pass a FakeClock with a fixed now() to verify the boundary cases. The brief explicitly required this shape.",
       "user": "production uses default, tests inject FakeClock, ready to commit",
       "assertions": [
-        "Response does NOT emit BLOCKED — it signals ready-to-commit",
+        "Response does NOT emit BLOCKED - it signals ready-to-commit",
         "Response correctly identifies the Clock parameter as a real injection seam (not an escape hatch): the production default (SystemClock) has a real non-null behavior, and the test override is legitimate determinism control",
         "Response does NOT fabricate a smell or apply the test-seam-vs-escape-hatch question incorrectly",
-        "Response treats this as a normal commit-ready state — the brief explicitly required this shape"
+        "Response treats this as a normal commit-ready state - the brief explicitly required this shape"
       ]
     }
   ]
