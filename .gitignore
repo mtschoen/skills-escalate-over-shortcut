@@ -5,3 +5,8 @@ workspace/
 # Python bytecode (from running evals/grade.py etc. locally).
 __pycache__/
 *.pyc
+
+# aislop runtime artifacts (session/history logs, caches, baselines).
+# Unanchored so nested project directories are covered too.
+**/.aislop/*
+!**/.aislop/config.yml
