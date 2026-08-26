@@ -1,3 +1,10 @@
+> [!NOTE]
+> **This repository has moved.** Its content, history, and issues now live in
+> [skills-completion-discipline](https://github.com/mtschoen/skills-completion-discipline) under the `escalate-over-shortcut/` directory, as part
+> of consolidating 26 single-skill repositories into three themed families.
+> See [skills-dev#25](https://github.com/mtschoen/skills-dev) for the rationale.
+> This repository is archived and read-only.
+
 # escalate-over-shortcut
 
 A skill that teaches agents to recognize hack-shaped solutions in their own draft and escalate `BLOCKED` to the orchestrator instead of shipping the shortcut. Agent -> self companion to [`pushback`](https://github.com/mtschoen/skills-pushback) (which is agent -> user).
